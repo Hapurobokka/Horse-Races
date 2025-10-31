@@ -1,5 +1,5 @@
 import pyray as rl
-from raylib import KEY_G, KEY_SPACE
+from raylib import KEY_SPACE
 
 WIDTH = 800
 HEIGHT = 450
@@ -11,10 +11,14 @@ ball_position = rl.Vector2(rl.get_screen_width() / 2, rl.get_screen_height() / 2
 ball_speed = rl.Vector2(10.0, 8.0)
 ball_radius = 20
 
-left_bound_rec = rl.Rectangle(0, 0, 100, rl.get_screen_height())
-right_bound_rec = rl.Rectangle(rl.get_screen_width() - 100, 0, 100, rl.get_screen_height())
-upper_bound_rec = rl.Rectangle(0, 0, rl.get_screen_width(), 100)
-lower_bound_rec = rl.Rectangle(0, rl.get_screen_height() - 100, rl.get_screen_width(), 100)
+left_bound_rec = rl.Rectangle(0, 0, 50, rl.get_screen_height())
+right_bound_rec = rl.Rectangle(
+    rl.get_screen_width() - 50, 0, 50, rl.get_screen_height()
+)
+upper_bound_rec = rl.Rectangle(0, 0, rl.get_screen_width(), 50)
+lower_bound_rec = rl.Rectangle(
+    0, rl.get_screen_height() - 50, rl.get_screen_width(), 50
+)
 
 upper_bounds = [
     upper_bound_rec,
@@ -39,27 +43,29 @@ while not rl.window_should_close():
         ball_position.x += ball_speed.x
         ball_position.y += ball_speed.y
 
-        if (
-            ball_position.x >= (rl.get_screen_width() - ball_radius)
-            or ball_position.x <= ball_radius
-        ):
-            ball_speed.x *= -1.0
-
-        if (
-            ball_position.y >= (rl.get_screen_height() - ball_radius)
-            or ball_position.y <= ball_radius
-        ):
-            ball_speed.y *= -0.95
+        for b in side_bounds:
+            collision: bool = rl.check_collision_circle_rec(ball_position, ball_radius, b)
+            if collision:
+                center_x = b.x + b.width / 2
+                center_y = b.y + b.height / 2
 
         for b in side_bounds:
             collision = rl.check_collision_circle_rec(ball_position, ball_radius, b)
             if collision:
                 ball_speed.x *= -1.0
+                if ball_position.x < b.x + b.width / 2:
+                    ball_position.x = b.x - ball_radius
+                else:
+                    ball_position.x = b.x + b.width + ball_radius
 
         for b in upper_bounds:
             collision = rl.check_collision_circle_rec(ball_position, ball_radius, b)
             if collision:
                 ball_speed.y *= -0.95
+                if ball_position.y < b.y + b.height / 2:
+                    ball_position.y = b.y - ball_radius
+                else:
+                    ball_position.y = b.y + b.height + ball_radius
 
     else:
         frames_counter += 1
