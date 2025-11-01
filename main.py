@@ -4,37 +4,41 @@ from raylib import KEY_SPACE
 
 
 class Horse:
-    def __init__(self, x: int | float, y: int | float, radius: int) -> None:
+    def __init__(self, name: str, x: int | float, y: int | float, radius: int) -> None:
+        self.name: str = name
         self.position: Vector2 = Vector2(x, y)
         self.speed: Vector2 = Vector2(10.0, 8.0)
         self.radius: int = 20
 
+    def accelerate(self) -> None:
+        self.position.x += self.speed.x
+        self.position.y += self.speed.y
 
-def check_collision(horse: Horse, bounds: list[rl.Rectangle]):
-    for b in bounds:
-        collision = rl.check_collision_circle_rec(horse.position, horse.radius, b)
+    def check_collision(self, bounds: list[rl.Rectangle]) -> None:
+        for b in bounds:
+            collision = rl.check_collision_circle_rec(self.position, self.radius, b)
 
-        if not collision:
-            continue
+            if not collision:
+                continue
 
-        center_x = b.x + b.width / 2
-        center_y = b.y + b.height / 2
+            center_x = b.x + b.width / 2
+            center_y = b.y + b.height / 2
 
-        dx = horse.position.x - center_x
-        dy = horse.position.y - center_y
+            dx = self.position.x - center_x
+            dy = self.position.y - center_y
 
-        if abs(dx / b.width) > abs(dy / b.height):
-            horse.speed.x *= -1.0
-            if dx > 0:
-                horse.position.x = b.x + b.width + horse.radius
+            if abs(dx / b.width) > abs(dy / b.height):
+                self.speed.x *= -1.0
+                if dx > 0:
+                    self.position.x = b.x + b.width + self.radius
+                else:
+                    self.position.x = b.x - self.radius
             else:
-                horse.position.x = b.x - horse.radius
-        else:
-            horse.speed.y *= -0.95
-            if dy > 0:
-                horse.position.y = b.y + b.height + horse.radius
-            else:
-                horse.position.y = b.y - horse.radius
+                self.speed.y *= -0.95
+                if dy > 0:
+                    self.position.y = b.y + b.height + self.radius
+                else:
+                    self.position.y = b.y - self.radius
 
 
 WIDTH = 800
@@ -43,7 +47,9 @@ HEIGHT = 450
 rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 rl.init_window(WIDTH, HEIGHT, "Hola")
 
-special_week = Horse(rl.get_screen_width() / 2, rl.get_screen_height() / 2, 20)
+special_week = Horse(
+    "Special Week", rl.get_screen_width() / 2, rl.get_screen_height() / 2, 20
+)
 
 all_bounds = [
     Rectangle(0, 0, 50, rl.get_screen_height()),
@@ -63,10 +69,8 @@ while not rl.window_should_close():
         pause = not pause
 
     if not pause:
-        special_week.position.x += special_week.speed.x
-        special_week.position.y += special_week.speed.y
-
-        check_collision(special_week, all_bounds)
+        special_week.accelerate()
+        special_week.check_collision(all_bounds)
     else:
         frames_counter += 1
     # Fin de la lógica del juego
