@@ -1,0 +1,3 @@
+[tool.basedpyright]
+# Desactivar reglas específicas
+reportUnknownMemberType = false

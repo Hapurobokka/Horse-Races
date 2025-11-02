@@ -4,6 +4,30 @@ from pyray import Vector2, Rectangle
 from horse import Horse
 
 
+class GameContext:
+    def __init__(self) -> None:
+        self.pause: bool = False
+        self.frames_counter: int = 0
+        self.race_started: bool = False
+        self.start_countdown: bool = False
+        self.count_down: float = 0
+
+
+def pause_game(gc: GameContext) -> None:
+    if not gc.race_started:
+        gc.start_countdown = True
+    else:
+        gc.pause = not gc.pause
+
+
+def start_game_countdown(gc: GameContext):
+    if gc.count_down >= 2:
+        gc.race_started = True
+        gc.start_countdown = False
+    else:
+        gc.count_down += rl.get_frame_time()
+
+
 WIDTH = 800
 HEIGHT = 450
 
@@ -49,37 +73,28 @@ all_bounds = [
 for h in all_horses:
     h.start()
 
-pause = False
-frames_counter = 0
-race_started = False
-start_countdown = False
-count_down = 0
-
 rl.set_target_fps(60)
+
+gc = GameContext()
 
 while not rl.window_should_close():
     # Lógica del juego
 
     # Cosas que detienen el juego
-    if rl.is_key_pressed(rl.KeyboardKey(KEY_SPACE)) and not race_started:
-        start_countdown = True
-    elif rl.is_key_pressed(KEY_SPACE):
-        pause = not pause
+    if rl.is_key_pressed(rl.KeyboardKey(KEY_SPACE)):
+        pause_game(gc)
 
-    if count_down >= 2 and start_countdown:
-        race_started = True
-        start_countdown = False
-    elif start_countdown:
-        count_down += rl.get_frame_time()
+    if gc.start_countdown:
+        start_game_countdown(gc)
 
     # Simulación de físicas (?)
-    if race_started and not pause:
+    if gc.race_started and not gc.pause:
         for h in all_horses:
             h.check_collision_borders(all_bounds)
             h.check_collision_horses(all_horses)
             h.accelerate()
     else:
-        frames_counter += 1
+        gc.frames_counter += 1
 
     # Fin de la lógica del juego
 
@@ -87,20 +102,20 @@ while not rl.window_should_close():
     rl.begin_drawing()
 
     rl.clear_background(rl.WHITE)
-    for h in all_horses:
-        h.render()
     for b in all_bounds:
         rl.draw_rectangle_rec(b, rl.PURPLE)
 
-    if pause and (frames_counter / 30) % 2:
+    for h in all_horses:
+        h.render()
+
+    if gc.pause and (gc.frames_counter / 30) % 2:
         rl.draw_text("Paused", 350, 200, 30, rl.GRAY)
 
-    if not start_countdown and not race_started:
+    if not gc.start_countdown and not gc.race_started:
         rl.draw_text("Ready?", 320, 200, 60, rl.YELLOW)
 
-    if start_countdown:
-        rl.draw_text(f"{count_down + 1:.0f}", 320, 200, 60, rl.RED)
-
+    if gc.start_countdown:
+        rl.draw_text(f"{gc.count_down + 1:.0f}", 320, 200, 60, rl.RED)
 
     rl.draw_fps(10, 10)
 
