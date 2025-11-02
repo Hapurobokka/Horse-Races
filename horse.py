@@ -2,8 +2,8 @@ from pyray import Vector2, Rectangle
 from random import choice
 import pyray as rl
 
-class Horse:
 
+class Horse:
     def __init__(
         self, name: str, position: Vector2, radius: int, color: rl.Color
     ) -> None:
@@ -98,6 +98,3 @@ class Horse:
                 Vector2(-5.0, -4.0),
             ],
         )
-
-
-

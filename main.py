@@ -13,25 +13,25 @@ rl.init_window(WIDTH, HEIGHT, "Hola")
 all_horses = [
     Horse(
         "SPCWK",
-        Vector2(rl.get_screen_width() / 2, rl.get_screen_height() / 2),
+        Vector2(200, 250),
         20,
         rl.PINK,
     ),
     Horse(
         "SILSUZ",
-        Vector2((rl.get_screen_width() / 2) + 30, rl.get_screen_height() / 2),
+        Vector2(200, 300),
         50,
         rl.GREEN,
     ),
     Horse(
         "TOTE",
-        Vector2((rl.get_screen_width() / 2) + 50, rl.get_screen_height() / 2),
+        Vector2(250, 300),
         50,
         rl.PURPLE,
     ),
     Horse(
         "GLSP",
-        Vector2(rl.get_screen_width() / 2, (rl.get_screen_height() / 2) + 50),
+        Vector2(250, 250),
         50,
         rl.YELLOW,
     ),
@@ -51,21 +51,36 @@ for h in all_horses:
 
 pause = False
 frames_counter = 0
+race_started = False
+start_countdown = False
+count_down = 0
 
 rl.set_target_fps(60)
 
 while not rl.window_should_close():
     # Lógica del juego
-    if rl.is_key_pressed(rl.KeyboardKey(KEY_SPACE)):
+
+    # Cosas que detienen el juego
+    if rl.is_key_pressed(rl.KeyboardKey(KEY_SPACE)) and not race_started:
+        start_countdown = True
+    elif rl.is_key_pressed(KEY_SPACE):
         pause = not pause
 
-    if not pause:
+    if count_down >= 2 and start_countdown:
+        race_started = True
+        start_countdown = False
+    elif start_countdown:
+        count_down += rl.get_frame_time()
+
+    # Simulación de físicas (?)
+    if race_started and not pause:
         for h in all_horses:
             h.check_collision_borders(all_bounds)
             h.check_collision_horses(all_horses)
             h.accelerate()
     else:
         frames_counter += 1
+
     # Fin de la lógica del juego
 
     # Renderización
@@ -79,6 +94,13 @@ while not rl.window_should_close():
 
     if pause and (frames_counter / 30) % 2:
         rl.draw_text("Paused", 350, 200, 30, rl.GRAY)
+
+    if not start_countdown and not race_started:
+        rl.draw_text("Ready?", 320, 200, 60, rl.YELLOW)
+
+    if start_countdown:
+        rl.draw_text(f"{count_down + 1:.0f}", 320, 200, 60, rl.RED)
+
 
     rl.draw_fps(10, 10)
 
