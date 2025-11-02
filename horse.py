@@ -92,9 +92,9 @@ class Horse:
     def start(self) -> None:
         self.speed = choice(
             [
-                Vector2(5.0, 4.0),
-                Vector2(-5.0, 4.0),
-                Vector2(5.0, -4.0),
-                Vector2(-5.0, -4.0),
+                Vector2(2.0, 1.0),
+                Vector2(-2.0, 1.0),
+                Vector2(2.0, -1.0),
+                Vector2(-2.0, -1.0),
             ],
         )
