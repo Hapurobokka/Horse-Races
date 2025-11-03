@@ -3,6 +3,7 @@ import pyray as rl
 from raylib import KEY_SPACE
 from pyray import Vector2, Rectangle, get_screen_height, get_screen_width
 from horse import Horse
+from random import shuffle, choice
 
 
 class GameContext:
@@ -43,6 +44,39 @@ def check_victory(h: Horse, g: Goal, gc: GameContext):
         gc.winner = h.name
 
 
+def randomize_race(horses: list[Horse]) -> None:
+    starting_positions = [
+        Vector2(80, 50),
+        Vector2(140, 50),
+        Vector2(80, 100),
+        Vector2(140, 100),
+        Vector2(80, 150),
+        Vector2(140, 150),
+        Vector2(80, 200),
+        Vector2(140, 200),
+    ]
+    shuffle(starting_positions)
+    print(starting_positions)
+    for h in horses:
+        h.position = starting_positions.pop()
+        h.speed = choice(
+            [
+                Vector2(2.0, 1.0),
+                Vector2(-2.0, 1.0),
+                Vector2(2.0, -1.0),
+                Vector2(-2.0, -1.0),
+                Vector2(1.0, 2.0),
+                Vector2(-1.0, 2.0),
+                Vector2(1.0, -2.0),
+                Vector2(-1.0, -2.0),
+                Vector2(1.5, 1.5),
+                Vector2(-1.5, 1.5),
+                Vector2(1.5, -1.5),
+                Vector2(-1.5, -1.5),
+            ],
+        )
+
+
 WIDTH = 800
 HEIGHT = 450
 
@@ -50,30 +84,14 @@ rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 rl.init_window(WIDTH, HEIGHT, "Umamusume")
 
 all_horses = [
-    Horse(
-        "SPCWK",
-        Vector2(80, 80),
-        20,
-        rl.PINK,
-    ),
-    Horse(
-        "SILSUZ",
-        Vector2(140, 80),
-        50,
-        rl.GREEN,
-    ),
-    Horse(
-        "TOTE",
-        Vector2(80, 140),
-        50,
-        rl.PURPLE,
-    ),
-    Horse(
-        "GLSP",
-        Vector2(140, 140),
-        50,
-        rl.YELLOW,
-    ),
+    Horse("SPCWK", rl.PINK),
+    Horse("SILSUZ", rl.GREEN),
+    Horse("TOTE", rl.MAGENTA),
+    Horse("GLSP", rl.YELLOW),
+    Horse("TWTB", rl.BLUE),
+    Horse("SILOV", rl.RED),
+    Horse("MTKFKKTR", rl.SKYBLUE),
+    Horse("MJMQ", rl.PURPLE),
 ]
 
 all_bounds = [
@@ -94,10 +112,9 @@ all_bounds = [
     Rectangle(460, get_screen_height() - 60, 240, 40),
 ]
 
-goal = Goal(Vector2(get_screen_width() - 60, 60), 10)
+goal = Goal(Vector2(get_screen_width() - 40, 40), 10)
 
-for h in all_horses:
-    h.start()
+randomize_race(all_horses)
 
 rl.set_target_fps(60)
 

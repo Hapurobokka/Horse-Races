@@ -1,14 +1,15 @@
 from pyray import Vector2, Rectangle
-from random import choice
 import pyray as rl
 
 
 class Horse:
     def __init__(
-        self, name: str, position: Vector2, radius: int, color: rl.Color
+        self,
+        name: str,
+        color: rl.Color,
     ) -> None:
         self.name: str = name
-        self.position: Vector2 = position
+        self.position: Vector2 = Vector2(0, 0)
         self.radius: int = 20
         self.color: rl.Color = color
         self.speed: Vector2
@@ -23,7 +24,6 @@ class Horse:
 
         dx = self.position.x - center_x
         dy = self.position.y - center_y
-
         if abs(dx / b.width) > abs(dy / b.height):
             self.speed.x *= -1.0
             if dx > 0:
@@ -87,14 +87,4 @@ class Horse:
             int(self.position.y + self.radius / 2) + 10,
             8,
             rl.BLACK,
-        )
-
-    def start(self) -> None:
-        self.speed = choice(
-            [
-                Vector2(2.0, 1.0),
-                Vector2(-2.0, 1.0),
-                Vector2(2.0, -1.0),
-                Vector2(-2.0, -1.0),
-            ],
         )
