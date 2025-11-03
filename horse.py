@@ -3,16 +3,13 @@ import pyray as rl
 
 
 class Horse:
-    def __init__(
-        self,
-        name: str,
-        color: rl.Color,
-    ) -> None:
+    def __init__(self, name: str, color: rl.Color, boop: rl.Sound) -> None:
         self.name: str = name
         self.position: Vector2 = Vector2(0, 0)
         self.radius: int = 20
         self.color: rl.Color = color
-        self.speed: Vector2
+        self.speed: Vector2 = Vector2(0, 0)
+        self.boop: rl.Sound = boop
 
     def accelerate(self) -> None:
         self.position.x += self.speed.x
@@ -71,6 +68,7 @@ class Horse:
         for b in bounds:
             if rl.check_collision_circle_rec(self.position, self.radius, b):
                 self.collide_with_border(b)
+                rl.play_sound(self.boop)
 
     def check_collision_horses(self, bounds: list["Horse"]) -> None:
         for h in bounds:

@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 import pyray as rl
 from raylib import KEY_SPACE
-from pyray import Vector2, Rectangle, get_screen_height, get_screen_width
+from pyray import (
+    Vector2,
+    Rectangle,
+    get_screen_height,
+    get_screen_width,
+)
 from horse import Horse
 from random import shuffle, choice
 
@@ -30,10 +35,11 @@ def pause_game(gc: GameContext) -> None:
         gc.pause = not gc.pause
 
 
-def start_game_countdown(gc: GameContext):
+def start_game_countdown(gc: GameContext, m: rl.Music):
     if gc.count_down >= 2:
         gc.race_started = True
         gc.start_countdown = False
+        rl.play_music_stream(m)
     else:
         gc.count_down += rl.get_frame_time()
 
@@ -83,15 +89,28 @@ HEIGHT = 450
 rl.set_config_flags(rl.ConfigFlags.FLAG_MSAA_4X_HINT)
 rl.init_window(WIDTH, HEIGHT, "Umamusume")
 
+rl.init_audio_device()
+
+boop = rl.load_sound("collide.wav")
+rl.set_sound_volume(boop, 0.1)
+
+ost = rl.load_music_stream("versus.mp3")
+ost.looping = True
+rl.set_music_volume(ost, 0.4)
+
+victory = rl.load_music_stream("victory.mp3")
+victory.looping = True
+rl.set_music_volume(victory, 1.0)
+
 all_horses = [
-    Horse("SPCWK", rl.PINK),
-    Horse("SILSUZ", rl.GREEN),
-    Horse("TOTE", rl.MAGENTA),
-    Horse("GLSP", rl.YELLOW),
-    Horse("TWTB", rl.BLUE),
-    Horse("SILOV", rl.RED),
-    Horse("MTKFKKTR", rl.SKYBLUE),
-    Horse("MJMQ", rl.PURPLE),
+    Horse("SPCWK", rl.PINK, boop),
+    Horse("SILSUZ", rl.GREEN, boop),
+    Horse("TOTE", rl.MAGENTA, boop),
+    Horse("GLSP", rl.YELLOW, boop),
+    Horse("TWTB", rl.BLUE, boop),
+    Horse("SILOV", rl.RED, boop),
+    Horse("MTKFKKTR", rl.SKYBLUE, boop),
+    Horse("MJMQ", rl.PURPLE, boop),
 ]
 
 all_bounds = [
@@ -121,6 +140,8 @@ rl.set_target_fps(60)
 gc = GameContext()
 
 while not rl.window_should_close():
+    rl.update_music_stream(ost)
+    rl.update_music_stream(victory)
     # Lógica del juego
 
     # Cosas que detienen el juego
@@ -128,17 +149,24 @@ while not rl.window_should_close():
         pause_game(gc)
 
     if gc.start_countdown:
-        start_game_countdown(gc)
+        start_game_countdown(gc, ost)
 
-    # Simulación de físicas (?)
     if gc.winner:
+        # Desmadre para reproducir música
+        if rl.is_music_stream_playing(ost):
+            rl.stop_music_stream(ost)
+        if not rl.is_music_stream_playing(victory):
+            rl.play_music_stream(victory)
         gc.frames_counter += 1
+
     elif gc.race_started and not gc.pause:
         for h in all_horses:
+            # Simulación de físicas (?)
             h.check_collision_borders(all_bounds)
             h.accelerate()
             h.check_collision_horses(all_horses)
             check_victory(h, goal, gc)
+
     else:
         gc.frames_counter += 1
 
@@ -172,4 +200,8 @@ while not rl.window_should_close():
     rl.end_drawing()
     # Fin de renderización
 
+rl.unload_sound(boop)
+rl.unload_music_stream(ost)
+rl.unload_music_stream(victory)
+rl.close_audio_device()
 rl.close_window()
