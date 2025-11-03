@@ -8,5 +8,7 @@ mkShell {
     raylib
     python313Packages.raylib-python-cffi
     black
+    ffmpeg
+    rembg
   ];
 }

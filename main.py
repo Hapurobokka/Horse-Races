@@ -102,15 +102,25 @@ victory = rl.load_music_stream("victory.mp3")
 victory.looping = True
 rl.set_music_volume(victory, 1.0)
 
+carrot = rl.load_texture("carrot.png")
+spcwk = rl.load_texture("spcwk.png")
+mambo = rl.load_texture("mambo.png")
+bakushin = rl.load_texture("bakushin.png")
+silov = rl.load_texture("silov.png")
+teto = rl.load_texture("teto.png")
+glsp = rl.load_texture("gold.png")
+silsuz = rl.load_texture("silsuz.png")
+mjmq = rl.load_texture("mjmq.png")
+
 all_horses = [
-    Horse("SPCWK", rl.PINK, boop),
-    Horse("SILSUZ", rl.GREEN, boop),
-    Horse("TOTE", rl.MAGENTA, boop),
-    Horse("GLSP", rl.YELLOW, boop),
-    Horse("TWTB", rl.BLUE, boop),
-    Horse("SILOV", rl.RED, boop),
-    Horse("MTKFKKTR", rl.SKYBLUE, boop),
-    Horse("MJMQ", rl.PURPLE, boop),
+    Horse("SPCWK", rl.PINK, boop, "spcwk.png"),
+    Horse("SILSUZ", rl.GREEN, boop, "silsuz.png"),
+    Horse("TOTE", rl.MAGENTA, boop, "teto.png"),
+    Horse("GLSP", rl.YELLOW, boop, "gold.png"),
+    Horse("MAMBO", rl.BROWN, boop, "mambo.png"),
+    Horse("SILOV", rl.RED, boop, "silov.png"),
+    Horse("BAKUSHIN", rl.SKYBLUE, boop, "bakushin.png"),
+    Horse("MJMQ", rl.PURPLE, boop, "mjmq.png"),
 ]
 
 all_bounds = [
@@ -181,7 +191,15 @@ while not rl.window_should_close():
 
     for h in all_horses:
         h.render()
-    rl.draw_circle_v(goal.position, goal.radius, rl.ORANGE)
+
+    # rl.draw_circle_v(goal.position, goal.radius, rl.ORANGE)
+    rl.draw_texture_ex(
+        carrot,
+        Vector2(goal.position.x - goal.radius, goal.position.y - goal.radius),
+        0.0,
+        carrot.width / 25000.0,
+        rl.WHITE,
+    )
 
     if gc.pause and (gc.frames_counter / 30) % 2:
         rl.draw_text("Paused", 350, 200, 30, rl.GRAY)
@@ -204,4 +222,8 @@ rl.unload_sound(boop)
 rl.unload_music_stream(ost)
 rl.unload_music_stream(victory)
 rl.close_audio_device()
+
+for h in all_horses:
+    rl.unload_texture(h.texture)
+
 rl.close_window()

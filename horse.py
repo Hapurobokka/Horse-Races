@@ -3,13 +3,16 @@ import pyray as rl
 
 
 class Horse:
-    def __init__(self, name: str, color: rl.Color, boop: rl.Sound) -> None:
+    def __init__(
+        self, name: str, color: rl.Color, boop: rl.Sound, texture: str
+    ) -> None:
         self.name: str = name
         self.position: Vector2 = Vector2(0, 0)
         self.radius: int = 20
         self.color: rl.Color = color
         self.speed: Vector2 = Vector2(0, 0)
         self.boop: rl.Sound = boop
+        self.texture: rl.Texture = rl.load_texture(texture)
 
     def accelerate(self) -> None:
         self.position.x += self.speed.x
@@ -38,6 +41,7 @@ class Horse:
         dx = self.position.x - h.position.x
         dy = self.position.y - h.position.y
 
+        # type: ignore
         distance: float = (dx * dx + dy * dy) ** 0.5
         min_distance = self.radius + h.radius
 
@@ -78,7 +82,17 @@ class Horse:
                 self.collide_with_horse(h)
 
     def render(self) -> None:
-        rl.draw_circle_v(self.position, self.radius, self.color)
+        rl.draw_texture_ex(
+            self.texture,
+            Vector2(
+                self.position.x - self.radius,
+                self.position.y - self.radius,
+            ),
+            0,
+            self.texture.width / 6000.0,
+            rl.WHITE,
+        )
+
         rl.draw_text(
             self.name,
             int(self.position.x) - 15,
