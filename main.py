@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import pyray as rl
 from raylib import KEY_SPACE
-from pyray import Vector2, Rectangle 
+from pyray import Vector2, Rectangle, get_screen_height, get_screen_width
 from horse import Horse
 
 
@@ -52,41 +52,49 @@ rl.init_window(WIDTH, HEIGHT, "Umamusume")
 all_horses = [
     Horse(
         "SPCWK",
-        Vector2(200, 250),
+        Vector2(80, 80),
         20,
         rl.PINK,
     ),
     Horse(
         "SILSUZ",
-        Vector2(200, 300),
+        Vector2(140, 80),
         50,
         rl.GREEN,
     ),
     Horse(
         "TOTE",
-        Vector2(250, 300),
+        Vector2(80, 140),
         50,
         rl.PURPLE,
     ),
     Horse(
         "GLSP",
-        Vector2(250, 250),
+        Vector2(140, 140),
         50,
         rl.YELLOW,
     ),
 ]
 
 all_bounds = [
-    Rectangle(0, 0, 50, rl.get_screen_height()),
-    Rectangle(rl.get_screen_width() - 50, 0, 50, rl.get_screen_height()),
-    Rectangle(0, 0, rl.get_screen_width(), 50),
-    Rectangle(0, rl.get_screen_height() - 50, rl.get_screen_width(), 50),
-    Rectangle(150, 0, 175, 200),
-    Rectangle(rl.get_screen_width() - 350, 200, 175, 300),
-    Rectangle(rl.get_screen_width() - 350, 0, 175, 120),
+    Rectangle(0, 0, get_screen_width() - 20, 20),
+    Rectangle(0, 20, 20, get_screen_height() - 20),
+    Rectangle(0, get_screen_height() - 20, get_screen_width() - 20, 20),
+    Rectangle(get_screen_width() - 20, 0, 20, get_screen_height()),
+    Rectangle(200, 20, 60, 200),
+    Rectangle(340, 20, 60, 240),
+    Rectangle(440, 20, 60, 40),
+    Rectangle(540, 20, 140, 60),
+    Rectangle(480, 140, 300, 40),
+    Rectangle(20, get_screen_height() - 180, 100, 40),
+    Rectangle(460, get_screen_height() - 180, 240, 40),
+    Rectangle(20, get_screen_height() - 100, 100, 80),
+    Rectangle(200, get_screen_height() - 100, 60, 80),
+    Rectangle(340, get_screen_height() - 60, 60, 40),
+    Rectangle(460, get_screen_height() - 60, 240, 40),
 ]
 
-goal = Goal(Vector2(700, 350), 10)
+goal = Goal(Vector2(get_screen_width() - 60, 60), 10)
 
 for h in all_horses:
     h.start()
