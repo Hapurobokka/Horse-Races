@@ -192,7 +192,6 @@ while not rl.window_should_close():
     for h in all_horses:
         h.render()
 
-    # rl.draw_circle_v(goal.position, goal.radius, rl.ORANGE)
     rl.draw_texture_ex(
         carrot,
         Vector2(goal.position.x - goal.radius, goal.position.y - goal.radius),

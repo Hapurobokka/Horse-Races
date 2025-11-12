@@ -4,11 +4,13 @@ with pkgs;
 
 mkShell {
   buildInputs = [
-    python3
-    raylib
-    python313Packages.raylib-python-cffi
     black
     ffmpeg
+    python3
+    python313Packages.raylib-python-cffi
+    raygui
+    raylib
     rembg
+    valgrind
   ];
 }
