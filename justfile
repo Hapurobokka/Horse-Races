@@ -1,5 +1,5 @@
 run: build
-    ./game
+    target/game
 
 remove IMAGE:
     echo "Eliminando fondo..."
@@ -12,7 +12,4 @@ remove IMAGE:
     rip output.png
 
 build:
-     clang++ main.cpp -o game -lraylib --std=c++23
-
-
-
+     clang++ src/main.cpp src/horse.cpp -o target/game -lraylib --std=c++23
