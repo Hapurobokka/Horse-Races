@@ -18,6 +18,18 @@
 
 using namespace std;
 
+enum class GameState {
+    Menu,
+    Race,
+    Edit,
+};
+
+struct Goal {
+    Vector2 position;
+    Texture texture;
+};
+
+
 class Timer {
     double start_time;
     double lifetime;
@@ -34,6 +46,34 @@ public:
 
     double get_elapsed() {
         return GetTime() - start_time;
+    }
+};
+
+struct GameContext {
+    GameState current_mode;
+    vector<Horse*> horses;
+    vector<Rectangle> map;
+    Goal goal;
+    Music ost;
+    Sound boop;
+
+    bool paused = false;
+    bool race_started = false;
+    bool victory = false;
+    string winner {};
+
+    Timer music_t = Timer{};
+    Timer go_label = Timer{};
+
+    void clean() {
+        UnloadSound(boop);
+        UnloadMusicStream(ost);
+        for (auto h : horses) {
+            h->clean();
+            delete h;
+            h = nullptr;
+        }
+        UnloadTexture(goal.texture);
     }
 };
 
@@ -79,11 +119,80 @@ void randomize_race(vector<Horse*> &horses) {
     }
 }
 
+void race_mode_logic(GameContext &gc) {
+    UpdateMusicStream(gc.ost);
+    if (gc.music_t.is_done() && !gc.race_started) {
+        gc.race_started = true;
+        gc.go_label.start(3);
+        if (!IsMusicStreamPlaying(gc.ost))
+            PlayMusicStream(gc.ost);
+    }
+    if (IsKeyPressed(KEY_SPACE) && !gc.victory && gc.race_started) gc.paused = !gc.paused; 
+
+    if (!gc.paused && !gc.victory && gc.race_started) {
+        for (auto h : gc.horses) {
+            h->accelerate();
+            for (auto b : gc.map)
+                if (h->collide_with_border(b)) PlaySound(gc.boop);
+            for (auto h2 : gc.horses)
+                if (h->collide_with_horse(h2)) PlaySound(gc.boop);
+
+            if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
+                gc.victory = true;
+                gc.winner = h->get_name();
+            }
+        }
+    }
+}
+
+void race_mode_render(GameContext &gc) {
+    BeginDrawing();
+        ClearBackground(RAYWHITE);
+        for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); };
+        DrawTextureEx(
+            gc.goal.texture,
+            Vector2{ gc.goal.position.x - 10, gc.goal.position.y - 10 },
+            0.0f,
+            gc.goal.texture.width / 25000.0f,
+            WHITE
+        );
+        for (auto h : gc.horses){  h->render(); };
+        if (!gc.race_started)
+            DrawText("Ready?", 350, 200, 30, GRAY);
+        if (!gc.go_label.is_done())
+            DrawText("GO!", 350, 200, 30, GRAY);
+        if (gc.paused)
+            DrawText("Paused", 350, 200, 30, GRAY);
+        if (gc.victory)
+            DrawText(TextFormat("WINNER: %s", gc.winner.c_str()), 350, 200, 30, YELLOW);
+        DrawFPS(10, 10);
+    EndDrawing();
+}
+
+void welcome_mode_logic(GameContext &gc) {
+    if (IsKeyPressed(KEY_SPACE)) {
+        gc.current_mode = GameState::Race;
+        gc.music_t.start(3);
+    }
+}
+
+void welcome_mode_render(GameContext &gc) {
+    BeginDrawing();
+        ClearBackground(RAYWHITE);
+        DrawText("Press space to start", 350, 200, 30, GRAY);
+    EndDrawing();
+}
+
 int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(WIDTH, HEIGHT, "Umamusume");
     SetTargetFPS(60);
-    InitAudioDevice();
+
+    GameContext gc {};
+
+    gc.boop = LoadSound("assets/music/collide.wav");
+    gc.ost = LoadMusicStream("assets/music/versus.mp3");
+
 
     vector<tuple<string, string>> p_horses = {
         { "SPCWK", "spcwk.png" },
@@ -96,7 +205,7 @@ int main() {
         { "SILSUZ", "silsuz.png" }
     };
 
-    vector<Horse*> horses = p_horses 
+    gc.horses = p_horses 
         | views::transform([](const tuple<string, string> t){
             string name, text;
             tie(name, text) = t;
@@ -105,7 +214,7 @@ int main() {
         }) 
         | ranges::to<std::vector>();
 
-    vector<Rectangle> all_bounds {
+    gc.map = {
         Rectangle{ 0, 0, (GetScreenWidth() - 20.0f), 20 },
         Rectangle{ 0, 20, 20, GetScreenHeight() - 20.0f },
         Rectangle{ 0, (GetScreenHeight() - 20.0f), (GetScreenWidth() - 20.0f), 20 },
@@ -123,80 +232,28 @@ int main() {
         Rectangle{ 460, (GetScreenHeight() - 60.0f), 240, 40 },
     };
 
-    Vector2 goal_position = Vector2{GetScreenWidth() - 40.0f, 40};
-    Texture carrot = LoadTexture("assets/images/carrot.png");
+    gc.goal = {Vector2{GetScreenWidth() - 40.0f, 40}, LoadTexture("assets/images/carrot.png")};
+    gc.current_mode = GameState::Menu;
 
-    randomize_race(horses);
-
-    Sound boop = LoadSound("assets/music/collide.wav");
-    Music ost = LoadMusicStream("assets/music/versus.mp3");
-
-    bool paused = false;
-    bool race_started = false;
-    bool victory = false;
-    string winner {};
-
-    Timer music_t = Timer{};
-    Timer go_label = Timer{};
-
-    music_t.start(3);
+    InitAudioDevice();
+    randomize_race(gc.horses);
 
     while (!WindowShouldClose()) {
-        UpdateMusicStream(ost);
-        if (music_t.is_done() && !race_started) {
-            race_started = true;
-            go_label.start(3);
-            if (!IsMusicStreamPlaying(ost))
-                PlayMusicStream(ost);
+    switch (gc.current_mode) {
+        case GameState::Race:
+            race_mode_logic(gc);
+            race_mode_render(gc);
+            break;
+        case GameState::Menu:
+            welcome_mode_logic(gc);
+            welcome_mode_render(gc);
+            break;
+        default:
+            cout << "No";
         }
-        if (IsKeyPressed(KEY_SPACE) && !victory && race_started) paused = !paused; 
-
-        if (!paused && !victory && race_started) {
-            for (auto h : horses) {
-                h->accelerate();
-                for (auto b : all_bounds)
-                    if (h->collide_with_border(b)) PlaySound(boop);
-                for (auto h2 : horses)
-                    if (h->collide_with_horse(h2)) PlaySound(boop);
-
-                if (CheckCollisionCircles(h->get_position(), h->get_radius(), goal_position, 10)) {
-                    victory = true;
-                    winner = h->get_name();
-                }
-            }
-        }
-
-        BeginDrawing();
-            ClearBackground(RAYWHITE);
-            for (auto b : all_bounds) { DrawRectangleRec(b, PURPLE); };
-            DrawTextureEx(
-                carrot,
-                Vector2{ goal_position.x - 10, goal_position.y - 10 },
-                0.0,
-                carrot.width / 25000.0,
-                WHITE
-            );
-            for (auto h : horses){  h->render(); };
-            if (!race_started)
-                DrawText("Ready?", 350, 200, 30, GRAY);
-            if (!go_label.is_done())
-                DrawText("GO!", 350, 200, 30, GRAY);
-            if (paused)
-                DrawText("Paused", 350, 200, 30, GRAY);
-            if (victory)
-                DrawText(TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
-            DrawFPS(10, 10);
-        EndDrawing();
     }
 
-    for (auto h : horses) {
-        h->clean();
-        delete h;
-        h = nullptr;
-    }
-    UnloadSound(boop);
-    UnloadMusicStream(ost);
-    UnloadTexture(carrot);
+    gc.clean();
     CloseAudioDevice();
     CloseWindow();
     return 0;
