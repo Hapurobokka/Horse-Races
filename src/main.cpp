@@ -157,9 +157,11 @@ void race_mode_render(GameContext &gc) {
             WHITE
         );
         for (auto h : gc.horses){  h->render(); };
-        if (!gc.race_started)
+        if (gc.current_mode == GameState::Menu)
+            DrawText("Press space to start", 350, 200, 30, GRAY);
+        if (!gc.race_started && gc.current_mode == GameState::Race)
             DrawText("Ready?", 350, 200, 30, GRAY);
-        if (!gc.go_label.is_done())
+        if (!gc.go_label.is_done() && !gc.paused)
             DrawText("GO!", 350, 200, 30, GRAY);
         if (gc.paused)
             DrawText("Paused", 350, 200, 30, GRAY);
@@ -176,13 +178,6 @@ void welcome_mode_logic(GameContext &gc) {
     }
 }
 
-void welcome_mode_render(GameContext &gc) {
-    BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText("Press space to start", 350, 200, 30, GRAY);
-    EndDrawing();
-}
-
 int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(WIDTH, HEIGHT, "Umamusume");
@@ -192,7 +187,6 @@ int main() {
 
     gc.boop = LoadSound("assets/music/collide.wav");
     gc.ost = LoadMusicStream("assets/music/versus.mp3");
-
 
     vector<tuple<string, string>> p_horses = {
         { "SPCWK", "spcwk.png" },
@@ -207,12 +201,8 @@ int main() {
 
     gc.horses = p_horses 
         | views::transform([](const tuple<string, string> t){
-            string name, text;
-            tie(name, text) = t;
-            text = "assets/images/" + text;
-            return new Horse(name, LoadTexture(text.c_str())); 
-        }) 
-        | ranges::to<std::vector>();
+            return new Horse(get<0>(t), get<1>(t)); 
+        }) | ranges::to<std::vector>();
 
     gc.map = {
         Rectangle{ 0, 0, (GetScreenWidth() - 20.0f), 20 },
@@ -246,7 +236,7 @@ int main() {
             break;
         case GameState::Menu:
             welcome_mode_logic(gc);
-            welcome_mode_render(gc);
+            race_mode_render(gc);
             break;
         default:
             cout << "No";

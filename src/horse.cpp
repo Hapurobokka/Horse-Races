@@ -7,8 +7,10 @@
 using std::string;
 using std::cout;
 
-Horse::Horse(string n, Texture t) : name { n }, texture { t } { 
+Horse::Horse(string n, string t) : name { n } { 
     cout << name << " creado.\n";
+    t = "assets/images/" + t;
+    texture = LoadTexture(t.c_str());
     radius = 20;
 }
 

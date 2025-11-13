@@ -6,12 +6,12 @@
 class Horse {
 private:
     std::string name;
+    Texture texture;
     Vector2 position;
     Vector2 speed;
     int radius;
-    Texture texture;
 public:
-    Horse(std::string n, Texture t);
+    Horse(std::string n, std::string t);
 
     void render();
     void clean();
