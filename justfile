@@ -12,4 +12,4 @@ remove IMAGE:
     rip output.png
 
 build:
-     clang++ src/main.cpp src/horse.cpp -o target/game -lraylib --std=c++23
+     clang++ src/main.cpp src/horse.cpp src/modes.cpp -o target/game -lraylib --std=c++23
