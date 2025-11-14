@@ -7,7 +7,7 @@
 using std::string;
 using std::cout;
 
-Horse::Horse(string n, string t) : name { n } { 
+Horse::Horse(string n, string t) : name { n } {
     cout << name << " creado.\n";
     t = "assets/images/" + t;
     texture = LoadTexture(t.c_str());
@@ -31,10 +31,6 @@ void Horse::render() {
         8,
         BLACK
     );
-}
-
-void Horse::clean() {
-    UnloadTexture(texture);
 }
 
 void Horse::accelerate() {
@@ -94,4 +90,8 @@ bool Horse::collide_with_horse(Horse *h) {
     }
 
     return false;
+}
+
+Horse::~Horse() {
+    UnloadTexture(texture);
 }

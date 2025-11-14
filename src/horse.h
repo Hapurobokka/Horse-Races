@@ -12,9 +12,9 @@ private:
     int radius;
 public:
     Horse(std::string n, std::string t);
+    ~Horse();
 
     void render();
-    void clean();
     void accelerate();
     bool collide_with_border(Rectangle &b);
     bool collide_with_horse(Horse *h);

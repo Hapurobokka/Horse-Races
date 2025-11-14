@@ -1,10 +1,8 @@
 #include "horse.h"
 
 #include <algorithm>
-#include <bits/stdc++.h>
 #include <cmath>
 #include <cstdlib>
-#include <iostream>
 #include <random>
 #include <ranges>
 #include <raylib.h>
@@ -19,12 +17,6 @@
 #define HEIGHT 450
 
 using namespace std;
-
-enum class GameState {
-    Menu,
-    Race,
-    Edit,
-};
 
 struct Goal {
     Vector2 position;
@@ -52,26 +44,18 @@ public:
 };
 
 struct GameContext {
-    GameState current_mode;
     vector<Horse*> horses;
     vector<Rectangle> map;
     Goal goal;
     Music ost;
     Sound boop;
 
-    bool paused = false;
-    bool race_started = false;
-    bool victory = false;
-    string winner {};
-
     Timer music_t = Timer{};
-    Timer go_label = Timer{};
 
-    void clean() {
+    ~GameContext() {
         UnloadSound(boop);
         UnloadMusicStream(ost);
         for (auto h : horses) {
-            h->clean();
             delete h;
             h = nullptr;
         }
@@ -79,76 +63,101 @@ struct GameContext {
     }
 };
 
-void randomize_race(vector<Horse*> &horses) {
-    vector<Vector2> starting_positions = {
-        Vector2{ 80, 50 },
-        Vector2{ 140, 50 },
-        Vector2{ 80, 100 },
-        Vector2{ 140, 100 },
-        Vector2{ 80, 150 },
-        Vector2{ 140, 150 },
-        Vector2{ 80, 200 },
-        Vector2{ 140, 200 },
-    };
+class GameMode {
+public:
+    virtual ~GameMode() = default;
 
-    srand(time(0));
-    random_device rd;
-    default_random_engine rng(rd());
-    shuffle(starting_positions.begin(), starting_positions.end(), rng);
+    virtual GameMode* update(GameContext& gc) = 0;
+    virtual void render(GameContext& gc) = 0;
+};
 
-    vector<Vector2> possible_speeds = {
-        Vector2{ 2.0, 1.0 },
-        Vector2{ -2.0, 1.0 },
-        Vector2{ 2.0, -1.0 },
-        Vector2{ -2.0, -1.0 },
-        Vector2{ 1.0, 2.0 },
-        Vector2{ -1.0, 2.0 },
-        Vector2{ 1.0, -2.0 },
-        Vector2{ -1.0, -2.0 },
-        Vector2{ 1.5, 1.5 },
-        Vector2{ -1.5, 1.5 },
-        Vector2{ 1.5, -1.5 },
-        Vector2{ -1.5, -1.5 },
-    };
+class RaceMode : public GameMode {
+private:
+    Timer go_label {};
+    bool paused = false;
+    bool race_started = false;
+    bool victory = false;
+    string winner {};
 
-    for (auto h : horses) {
-        Vector2 new_pos = starting_positions.back();
-        starting_positions.pop_back();
-        int random_pos = rand() % possible_speeds.size();
+public:
+    void randomize_race(GameContext &gc) {
+        vector<Vector2> starting_positions = {
+            Vector2{ 80, 50 },
+            Vector2{ 140, 50 },
+            Vector2{ 80, 100 },
+            Vector2{ 140, 100 },
+            Vector2{ 80, 150 },
+            Vector2{ 140, 150 },
+            Vector2{ 80, 200 },
+            Vector2{ 140, 200 },
+        };
 
-        h->set_position(new_pos);
-        h->set_speed(possible_speeds[random_pos]);
-    }
-}
+        srand(time(0));
+        random_device rd;
+        default_random_engine rng(rd());
+        shuffle(starting_positions.begin(), starting_positions.end(), rng);
 
-void race_mode_logic(GameContext &gc) {
-    UpdateMusicStream(gc.ost);
-    if (gc.music_t.is_done() && !gc.race_started) {
-        gc.race_started = true;
-        gc.go_label.start(3);
-        if (!IsMusicStreamPlaying(gc.ost))
-            PlayMusicStream(gc.ost);
-    }
-    if (IsKeyPressed(KEY_SPACE) && !gc.victory && gc.race_started) gc.paused = !gc.paused;
+        vector<Vector2> possible_speeds = {
+            Vector2{ 2.0, 1.0 },
+            Vector2{ -2.0, 1.0 },
+            Vector2{ 2.0, -1.0 },
+            Vector2{ -2.0, -1.0 },
+            Vector2{ 1.0, 2.0 },
+            Vector2{ -1.0, 2.0 },
+            Vector2{ 1.0, -2.0 },
+            Vector2{ -1.0, -2.0 },
+            Vector2{ 1.5, 1.5 },
+            Vector2{ -1.5, 1.5 },
+            Vector2{ 1.5, -1.5 },
+            Vector2{ -1.5, -1.5 },
+        };
 
-    if (!gc.paused && !gc.victory && gc.race_started) {
         for (auto h : gc.horses) {
-            h->accelerate();
-            for (auto b : gc.map)
-                if (h->collide_with_border(b)) PlaySound(gc.boop);
-            for (auto h2 : gc.horses)
-                if (h->collide_with_horse(h2)) PlaySound(gc.boop);
+            Vector2 new_pos = starting_positions.back();
+            starting_positions.pop_back();
+            int random_pos = rand() % possible_speeds.size();
 
-            if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
-                gc.victory = true;
-                gc.winner = h->get_name();
-            }
+            h->set_position(new_pos);
+            h->set_speed(possible_speeds[random_pos]);
         }
     }
-}
 
-void race_mode_render(GameContext &gc) {
-    BeginDrawing();
+    RaceMode(GameContext &gc) {
+        randomize_race(gc);
+    }
+
+    GameMode* update(GameContext& gc) override {
+        UpdateMusicStream(gc.ost);
+        if (gc.music_t.is_done() && !race_started) {
+            race_started = true;
+            go_label.start(3);
+            if (!IsMusicStreamPlaying(gc.ost))
+                PlayMusicStream(gc.ost);
+        }
+        if (IsKeyPressed(KEY_SPACE) && !victory && race_started)
+            paused = !paused;
+
+        if (!paused && !victory && race_started) {
+            for (auto h : gc.horses) {
+                h->accelerate();
+                for (auto b : gc.map)
+                    if (h->collide_with_border(b)) PlaySound(gc.boop);
+                for (auto h2 : gc.horses)
+                    if (h->collide_with_horse(h2)) PlaySound(gc.boop);
+
+                if (CheckCollisionCircles (
+                    h->get_position(), h->get_radius(), gc.goal.position, 10)
+                ) {
+                    victory = true;
+                    winner = h->get_name();
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
+    void render(GameContext &gc) override {
         ClearBackground(RAYWHITE);
         for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); };
         DrawTextureEx(
@@ -159,23 +168,35 @@ void race_mode_render(GameContext &gc) {
             WHITE
         );
         for (auto h : gc.horses){  h->render(); };
-        if (!gc.race_started && gc.current_mode == GameState::Race)
+        if (!race_started)
             DrawText("Ready?", 350, 200, 30, GRAY);
-        if (!gc.go_label.is_done() && !gc.paused)
+        if (!go_label.is_done() && !paused)
             DrawText("GO!", 350, 200, 30, GRAY);
-        if (gc.paused)
+        if (paused)
             DrawText("Paused", 350, 200, 30, GRAY);
-        if (gc.victory)
-            DrawText(TextFormat("WINNER: %s", gc.winner.c_str()), 350, 200, 30, YELLOW);
+        if (victory)
+            DrawText(TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
         DrawFPS(10, 10);
-    EndDrawing();
-}
+    }
+};
 
-void menu_mode_logic(GameContext &gc) {
-}
+class MenuMode : public GameMode {
+private:
+    bool button_pushed = false;
 
-void menu_mode_render(GameContext &gc) {
-    BeginDrawing();
+public:
+    MenuMode() {};
+
+    GameMode* update(GameContext &gc) override {
+        if (button_pushed) {
+            gc.music_t.start(3);
+            return new RaceMode(gc);
+        } else {
+            return nullptr;
+        }
+    }
+
+    void render(GameContext &gc) override {
         ClearBackground(RAYWHITE);
         for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); };
         DrawTextureEx(
@@ -187,13 +208,12 @@ void menu_mode_render(GameContext &gc) {
         );
         for (auto h : gc.horses){  h->render(); };
         if (GuiButton(Rectangle { 350, 250, 200, 30}, "Start")) {
-            gc.current_mode = GameState::Race;
-            gc.music_t.start(3);
+            button_pushed = true;
         }
         DrawText("Press start to start", 350, 200, 30, GRAY);
         DrawFPS(10, 10);
-    EndDrawing();
-}
+    }
+};
 
 int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -240,27 +260,24 @@ int main() {
     };
 
     gc.goal = {Vector2{GetScreenWidth() - 40.0f, 40}, LoadTexture("assets/images/carrot.png")};
-    gc.current_mode = GameState::Menu;
 
     InitAudioDevice();
-    randomize_race(gc.horses);
+
+    GameMode* current_state = new MenuMode();
 
     while (!WindowShouldClose()) {
-    switch (gc.current_mode) {
-        case GameState::Race:
-            race_mode_logic(gc);
-            race_mode_render(gc);
-            break;
-        case GameState::Menu:
-            menu_mode_logic(gc);
-            menu_mode_render(gc);
-            break;
-        default:
-            cout << "No";
+        GameMode* next_state = current_state->update(gc);
+
+        BeginDrawing();
+        current_state->render(gc);
+        EndDrawing();
+
+        if (next_state != nullptr) {
+            delete current_state;
+            current_state = next_state;
         }
     }
 
-    gc.clean();
     CloseAudioDevice();
     CloseWindow();
     return 0;
