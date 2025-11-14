@@ -4,15 +4,17 @@
 #include <bits/stdc++.h>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #include <random>
 #include <ranges>
 #include <raylib.h>
-#include <raygui.h>
 #include <string>
 #include <tuple>
 #include <vector>
 
 #define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
+
 #define WIDTH 800
 #define HEIGHT 450
 
@@ -127,7 +129,7 @@ void race_mode_logic(GameContext &gc) {
         if (!IsMusicStreamPlaying(gc.ost))
             PlayMusicStream(gc.ost);
     }
-    if (IsKeyPressed(KEY_SPACE) && !gc.victory && gc.race_started) gc.paused = !gc.paused; 
+    if (IsKeyPressed(KEY_SPACE) && !gc.victory && gc.race_started) gc.paused = !gc.paused;
 
     if (!gc.paused && !gc.victory && gc.race_started) {
         for (auto h : gc.horses) {
@@ -157,8 +159,6 @@ void race_mode_render(GameContext &gc) {
             WHITE
         );
         for (auto h : gc.horses){  h->render(); };
-        if (gc.current_mode == GameState::Menu)
-            DrawText("Press space to start", 350, 200, 30, GRAY);
         if (!gc.race_started && gc.current_mode == GameState::Race)
             DrawText("Ready?", 350, 200, 30, GRAY);
         if (!gc.go_label.is_done() && !gc.paused)
@@ -171,11 +171,28 @@ void race_mode_render(GameContext &gc) {
     EndDrawing();
 }
 
-void welcome_mode_logic(GameContext &gc) {
-    if (IsKeyPressed(KEY_SPACE)) {
-        gc.current_mode = GameState::Race;
-        gc.music_t.start(3);
-    }
+void menu_mode_logic(GameContext &gc) {
+}
+
+void menu_mode_render(GameContext &gc) {
+    BeginDrawing();
+        ClearBackground(RAYWHITE);
+        for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); };
+        DrawTextureEx(
+            gc.goal.texture,
+            Vector2{ gc.goal.position.x - 10, gc.goal.position.y - 10 },
+            0.0f,
+            gc.goal.texture.width / 25000.0f,
+            WHITE
+        );
+        for (auto h : gc.horses){  h->render(); };
+        if (GuiButton(Rectangle { 350, 250, 200, 30}, "Start")) {
+            gc.current_mode = GameState::Race;
+            gc.music_t.start(3);
+        }
+        DrawText("Press start to start", 350, 200, 30, GRAY);
+        DrawFPS(10, 10);
+    EndDrawing();
 }
 
 int main() {
@@ -199,9 +216,9 @@ int main() {
         { "SILSUZ", "silsuz.png" }
     };
 
-    gc.horses = p_horses 
+    gc.horses = p_horses
         | views::transform([](const tuple<string, string> t){
-            return new Horse(get<0>(t), get<1>(t)); 
+            return new Horse(get<0>(t), get<1>(t));
         }) | ranges::to<std::vector>();
 
     gc.map = {
@@ -235,8 +252,8 @@ int main() {
             race_mode_render(gc);
             break;
         case GameState::Menu:
-            welcome_mode_logic(gc);
-            race_mode_render(gc);
+            menu_mode_logic(gc);
+            menu_mode_render(gc);
             break;
         default:
             cout << "No";
