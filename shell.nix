@@ -11,5 +11,7 @@ mkShell {
     valgrind
     clang-tools
     clang
+    gnumake
+    wayland-utils
   ];
 }

@@ -1,0 +1,11 @@
+CC = gcc
+CFLAGS = -O2 -Wall -Wextra
+INCLUDES = -I./include
+LIBS = -L./lib/windows -l:libraylib.a -lopengl32 -lgdi32 -lwinmm -static --std=c++23
+TARGET = target/game.exe
+
+$(TARGET): src/main.cpp
+	$(CC) $(CFLAGS) $(INCLUDES) src/main.cpp src/horse.cpp src/modes.cpp -o $(TARGET) $(LIBS)
+
+clean:
+	del $(TARGET)

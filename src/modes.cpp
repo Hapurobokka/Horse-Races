@@ -1,9 +1,9 @@
 #include "modes.h"
 
-#include <raylib.h>
+#include "../include/raylib.h"
 
 #define RAYGUI_IMPLEMENTATION
-#include <raygui.h>
+#include "../include/raygui.h"
 
 void Timer::start(double lf) {
     start_time = GetTime();

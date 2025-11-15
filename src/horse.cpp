@@ -1,8 +1,8 @@
 #include "horse.h"
 
 #include <iostream>
-#include <raylib.h>
-#include <raymath.h>
+#include "../include/raylib.h"
+#include "../include/raymath.h"
 
 using std::string;
 using std::cout;

@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ranges>
-#include <raylib.h>
+#include "../include/raylib.h"
 #include <string>
 #include <tuple>
 #include <vector>
