@@ -7,7 +7,7 @@ mkShell {
     ffmpeg
     raygui
     raylib
-    rembg
+    # rembg
     valgrind
     clang-tools
     clang

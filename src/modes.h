@@ -14,8 +14,8 @@ public:
 };
 
 struct Goal {
-Vector2 position;
-Texture texture;
+    Vector2 position;
+    Texture texture;
 };
 
 struct GameContext {
@@ -74,6 +74,8 @@ public:
 class EditMode : public GameMode {
 private:
     bool back_button_pressed = false;
+    bool mouse_in_uma = false;
+    Horse* selected_uma = nullptr;
 
 public:
 	EditMode() {};

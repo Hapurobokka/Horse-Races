@@ -84,8 +84,9 @@ int main() {
 		Rectangle{460, (GetScreenHeight() - 60.0f), 240, 40},
 	};
 
-
 	InitAudioDevice();
+
+    gc.goal = Goal{ Vector2{ GetScreenWidth() - 60.0f, 60 }, LoadTexture("assets/images/carrot.png") };
 
     randomize_race(gc);
 

@@ -91,14 +91,14 @@ GameMode *MenuMode::update(GameContext &gc) {
 
 void MenuMode::render(GameContext &gc) {
     ClearBackground(RAYWHITE);
-    for (auto b : gc.map) {
-        DrawRectangleRec(b, PURPLE);
-    };
+    for (auto b : gc.map) DrawRectangleRec(b, PURPLE);
 
     DrawTextureEx(gc.goal.texture,
                   Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
                   0.0f,
                   gc.goal.texture.width / 25000.0f, WHITE);
+
+    for (auto h : gc.horses) h->render();
 
     if (GuiButton(Rectangle{275, 250, 200, 30}, "Start"))
         button_race_pressed = true;
@@ -112,9 +112,29 @@ void MenuMode::render(GameContext &gc) {
 }
 
 GameMode* EditMode::update(GameContext &gc) {
+    Vector2 mouse = GetMousePosition();
+
     if (back_button_pressed) {
         std::cout << "INFO: Entering Menu Mode\n";
         return new MenuMode();
+    }
+
+    for (auto h : gc.horses) {
+        if (CheckCollisionPointCircle(mouse, h->get_position(), h->get_radius())
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+            && !mouse_in_uma) {
+            std::cout << "Haz hecho click en " << h->get_name() << "\n";
+            mouse_in_uma = true;
+            selected_uma = h;
+        }
+    }
+
+    if (mouse_in_uma && selected_uma != nullptr) {
+        selected_uma->set_position(mouse);
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            mouse_in_uma = false;
+            selected_uma = nullptr;
+        }
     }
 
     return nullptr;
@@ -134,5 +154,6 @@ void EditMode::render(GameContext &gc) {
     DrawTextureEx(gc.goal.texture,
                   Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
                   0.0f,
-                  gc.goal.texture.width / 25000.0f, WHITE);
+                  gc.goal.texture.width / 25000.0f,
+                  WHITE);
 }
