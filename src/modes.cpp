@@ -24,31 +24,31 @@ double Timer::get_elapsed() { return GetTime() - start_time; }
 RaceMode::RaceMode(GameContext &gc) { randomize_race(gc); }
 
 void RaceMode::randomize_race(GameContext &gc) {
-  vector<Vector2> starting_positions = {
-      Vector2{80, 50},  Vector2{140, 50},  Vector2{80, 100}, Vector2{140, 100},
-      Vector2{80, 150}, Vector2{140, 150}, Vector2{80, 200}, Vector2{140, 200},
-  };
+    vector<Vector2> starting_positions = {
+        Vector2{80, 50},  Vector2{140, 50},  Vector2{80, 100}, Vector2{140, 100},
+        Vector2{80, 150}, Vector2{140, 150}, Vector2{80, 200}, Vector2{140, 200},
+    };
 
-  srand(time(0));
-  std::random_device rd;
-  std::default_random_engine rng(rd());
-  shuffle(starting_positions.begin(), starting_positions.end(), rng);
+    srand(time(0));
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    shuffle(starting_positions.begin(), starting_positions.end(), rng);
 
-  vector<Vector2> possible_speeds = {
-      Vector2{2.0, 1.0},   Vector2{-2.0, 1.0},  Vector2{2.0, -1.0},
-      Vector2{-2.0, -1.0}, Vector2{1.0, 2.0},   Vector2{-1.0, 2.0},
-      Vector2{1.0, -2.0},  Vector2{-1.0, -2.0}, Vector2{1.5, 1.5},
-      Vector2{-1.5, 1.5},  Vector2{1.5, -1.5},  Vector2{-1.5, -1.5},
-  };
+    vector<Vector2> possible_speeds = {
+        Vector2{2.0, 1.0},   Vector2{-2.0, 1.0},  Vector2{2.0, -1.0},
+        Vector2{-2.0, -1.0}, Vector2{1.0, 2.0},   Vector2{-1.0, 2.0},
+        Vector2{1.0, -2.0},  Vector2{-1.0, -2.0}, Vector2{1.5, 1.5},
+        Vector2{-1.5, 1.5},  Vector2{1.5, -1.5},  Vector2{-1.5, -1.5},
+    };
 
-for (auto h : gc.horses) {
-	Vector2 new_pos = starting_positions.back();
-	starting_positions.pop_back();
-	int random_pos = rand() % possible_speeds.size();
+    for (auto h : gc.horses) {
+        Vector2 new_pos = starting_positions.back();
+        starting_positions.pop_back();
+        int random_pos = rand() % possible_speeds.size();
 
-	h->set_position(new_pos);
-	h->set_speed(possible_speeds[random_pos]);
-	}
+        h->set_position(new_pos);
+        h->set_speed(possible_speeds[random_pos]);
+    }
 }
 
 GameMode* RaceMode::update(GameContext &gc) {
@@ -84,13 +84,14 @@ GameMode* RaceMode::update(GameContext &gc) {
 
 void RaceMode::render(GameContext &gc) {
 	ClearBackground(RAYWHITE);
-	for (auto b : gc.map) DrawRectangleRec(b, PURPLE);;
+	for (auto b : gc.map) DrawRectangleRec(b, PURPLE);
 
 	DrawTextureEx(gc.goal.texture,
-				Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10}, 0.0f,
-				gc.goal.texture.width / 25000.0f, WHITE);
+                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+                  0.0f,
+                  gc.goal.texture.width / 25000.0f, WHITE);
 
-	for (auto h : gc.horses) h->render();
+    for (auto h : gc.horses) h->render();
 
 	if (!race_started)
 		DrawText("Ready?", 350, 200, 30, GRAY);
@@ -100,6 +101,7 @@ void RaceMode::render(GameContext &gc) {
 		DrawText("Paused", 350, 200, 30, GRAY);
 	if (victory)
 		DrawText(TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
+
 	DrawFPS(10, 10);
 }
 
@@ -113,12 +115,19 @@ GameMode *MenuMode::update(GameContext &gc) {
 }
 
 void MenuMode::render(GameContext &gc) {
-  ClearBackground(RAYWHITE);
-  for (auto b : gc.map) {DrawRectangleRec(b, PURPLE);};
-  DrawTextureEx(gc.goal.texture, Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10}, 0.0f, gc.goal.texture.width / 25000.0f, WHITE);
-	if (GuiButton(Rectangle{275, 250, 200, 30}, "Start")) {
-		button_pushed = true;
-	}
-	DrawText("Press start to start", 250, 200, 30, GRAY);
-	DrawFPS(10, 10);
+    ClearBackground(RAYWHITE);
+    for (auto b : gc.map) {
+        DrawRectangleRec(b, PURPLE);
+    };
+
+    DrawTextureEx(gc.goal.texture,
+                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+                  0.0f,
+                  gc.goal.texture.width / 25000.0f, WHITE);
+
+    if (GuiButton(Rectangle{275, 250, 200, 30}, "Start")) {
+        button_pushed = true;
+    }
+    DrawText("Press start to start", 250, 200, 30, GRAY);
+    DrawFPS(10, 10);
 }
