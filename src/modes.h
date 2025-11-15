@@ -85,6 +85,7 @@ private:
 
     Horse* selected_uma = nullptr;
     Rectangle* selected_rectangle = nullptr;
+    bool is_mouse_in_border();
 
 public:
 	EditMode() {};
