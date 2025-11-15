@@ -1,16 +1,15 @@
-#include "horse.h"
-
-#include <cmath>
 #include <cstdlib>
 #include <ranges>
-#include "../include/raylib.h"
+#include "raylib.h"
 #include <string>
 #include <tuple>
 #include <vector>
 #include <algorithm>
 #include <random>
 
+#include "horse.h"
 #include "modes.h"
+
 
 #define WIDTH 800
 #define HEIGHT 450
@@ -84,8 +83,9 @@ int main() {
 		Rectangle{460, (GetScreenHeight() - 60.0f), 240, 40},
 	};
 
-
 	InitAudioDevice();
+
+    gc.goal = Goal{ Vector2{ GetScreenWidth() - 60.0f, 60 }, LoadTexture("assets/images/carrot.png") };
 
     randomize_race(gc);
 

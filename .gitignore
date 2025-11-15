@@ -1,4 +1,9 @@
+.cache/
 .direnv/
 .envrc
 __pycache__/
+build/
+compile_commands.json
 game
+old/
+pyproject.toml

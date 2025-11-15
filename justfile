@@ -1,5 +1,12 @@
 run: build
-    target/game
+    build/horses
+
+init:
+    mkdir build
+    cd build
+    cmake .. -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    cmake --build .
+    cd ..
 
 remove IMAGE:
     echo "Eliminando fondo..."
@@ -12,4 +19,7 @@ remove IMAGE:
     rip output.png
 
 build:
-     clang++ src/main.cpp src/horse.cpp src/modes.cpp -o target/game -lraylib --std=c++23
+    cmake --build build
+
+clean:
+    rm -rf build
