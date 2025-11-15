@@ -1,14 +1,9 @@
 #include "modes.h"
 
 #include <raylib.h>
-#include <vector>
-#include <algorithm>
-#include <random>
 
 #define RAYGUI_IMPLEMENTATION
 #include <raygui.h>
-
-using std::vector;
 
 void Timer::start(double lf) {
     start_time = GetTime();
@@ -21,35 +16,7 @@ bool Timer::is_done() {
 
 double Timer::get_elapsed() { return GetTime() - start_time; }
 
-RaceMode::RaceMode(GameContext &gc) { randomize_race(gc); }
-
-void RaceMode::randomize_race(GameContext &gc) {
-    vector<Vector2> starting_positions = {
-        Vector2{80, 50},  Vector2{140, 50},  Vector2{80, 100}, Vector2{140, 100},
-        Vector2{80, 150}, Vector2{140, 150}, Vector2{80, 200}, Vector2{140, 200},
-    };
-
-    srand(time(0));
-    std::random_device rd;
-    std::default_random_engine rng(rd());
-    shuffle(starting_positions.begin(), starting_positions.end(), rng);
-
-    vector<Vector2> possible_speeds = {
-        Vector2{2.0, 1.0},   Vector2{-2.0, 1.0},  Vector2{2.0, -1.0},
-        Vector2{-2.0, -1.0}, Vector2{1.0, 2.0},   Vector2{-1.0, 2.0},
-        Vector2{1.0, -2.0},  Vector2{-1.0, -2.0}, Vector2{1.5, 1.5},
-        Vector2{-1.5, 1.5},  Vector2{1.5, -1.5},  Vector2{-1.5, -1.5},
-    };
-
-    for (auto h : gc.horses) {
-        Vector2 new_pos = starting_positions.back();
-        starting_positions.pop_back();
-        int random_pos = rand() % possible_speeds.size();
-
-        h->set_position(new_pos);
-        h->set_speed(possible_speeds[random_pos]);
-    }
-}
+RaceMode::RaceMode(GameContext &gc) {}
 
 GameMode* RaceMode::update(GameContext &gc) {
     UpdateMusicStream(gc.ost);
@@ -72,7 +39,9 @@ GameMode* RaceMode::update(GameContext &gc) {
 			for (auto h2 : gc.horses)
 				if (h->collide_with_horse(h2)) PlaySound(gc.boop);
 
-			if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
+			if (CheckCollisionCircles(h->get_position(),
+                                      h->get_radius(),
+                                      gc.goal.position, 10)) {
 				victory = true;
 				winner = h->get_name();
 			}
@@ -106,12 +75,18 @@ void RaceMode::render(GameContext &gc) {
 }
 
 GameMode *MenuMode::update(GameContext &gc) {
-	if (button_pushed) {
+	if (button_race_pressed) {
 		gc.music_t.start(3);
+        std::cout << "INFO: Entering Race Mode\n";
 		return new RaceMode(gc);
-	} else {
-		return nullptr;
-	}
+    }
+
+    if (button_edit_pressed) {
+        std::cout << "INFO: Entering Edit Mode\n";
+        return new EditMode();
+    }
+
+    return nullptr;
 }
 
 void MenuMode::render(GameContext &gc) {
@@ -125,9 +100,39 @@ void MenuMode::render(GameContext &gc) {
                   0.0f,
                   gc.goal.texture.width / 25000.0f, WHITE);
 
-    if (GuiButton(Rectangle{275, 250, 200, 30}, "Start")) {
-        button_pushed = true;
-    }
+    if (GuiButton(Rectangle{275, 250, 200, 30}, "Start"))
+        button_race_pressed = true;
+
+    if (GuiButton(Rectangle{275, 280, 200, 30}, "Edit"))
+        button_edit_pressed = true;
+
+
     DrawText("Press start to start", 250, 200, 30, GRAY);
     DrawFPS(10, 10);
+}
+
+GameMode* EditMode::update(GameContext &gc) {
+    if (back_button_pressed) {
+        std::cout << "INFO: Entering Menu Mode\n";
+        return new MenuMode();
+    }
+
+    return nullptr;
+}
+
+void EditMode::render(GameContext &gc) {
+    ClearBackground(RAYWHITE);
+    for (auto b : gc.map) {
+        DrawRectangleRec(b, PURPLE);
+    };
+
+    for (auto h : gc.horses) h->render();
+
+    if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<"))
+        back_button_pressed = true;
+
+    DrawTextureEx(gc.goal.texture,
+                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+                  0.0f,
+                  gc.goal.texture.width / 25000.0f, WHITE);
 }

@@ -56,17 +56,27 @@ private:
 
 public:
 	RaceMode(GameContext &gc);
-	void randomize_race(GameContext &gc);
 	GameMode *update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };
 
 class MenuMode : public GameMode {
 private:
-	bool button_pushed = false;
+	bool button_race_pressed = false;
+    bool button_edit_pressed = false;
 
 public:
 	MenuMode() {};
+	GameMode* update(GameContext &gc) override;
+	void render(GameContext &gc) override;
+};
+
+class EditMode : public GameMode {
+private:
+    bool back_button_pressed = false;
+
+public:
+	EditMode() {};
 	GameMode* update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };
