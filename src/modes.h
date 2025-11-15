@@ -1,6 +1,7 @@
 #pragma once
 
 #include "horse.h"
+#include "raylib.h"
 
 #include <vector>
 
@@ -22,7 +23,7 @@ struct Goal {
 
 struct GameContext {
 	std::vector<Horse *> horses;
-	std::vector<Rectangle> map;
+	std::vector<Rectangle *> map;
 	Goal goal;
 	Music ost;
 	Sound boop;
@@ -57,7 +58,7 @@ private:
 	std::string winner{};
 
 public:
-	RaceMode(GameContext &gc);
+	RaceMode();
 	GameMode *update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };
@@ -77,7 +78,13 @@ class EditMode : public GameMode {
 private:
     bool back_button_pressed = false;
     bool mouse_in_uma = false;
+    bool mouse_in_left_upper = false;
+    bool mouse_in_left_down = false;
+    bool mouse_in_right_upper = false;
+    bool mouse_in_right_down = false;
+
     Horse* selected_uma = nullptr;
+    Rectangle* selected_rectangle = nullptr;
 
 public:
 	EditMode() {};

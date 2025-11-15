@@ -1,6 +1,7 @@
 #include "modes.h"
 
 #include "raylib.h"
+#include "raymath.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -15,8 +16,6 @@ bool Timer::is_done() {
 }
 
 double Timer::get_elapsed() { return GetTime() - start_time; }
-
-RaceMode::RaceMode(GameContext &gc) {}
 
 GameMode* RaceMode::update(GameContext &gc) {
     UpdateMusicStream(gc.ost);
@@ -35,7 +34,7 @@ GameMode* RaceMode::update(GameContext &gc) {
 		for (auto h : gc.horses) {
 			h->accelerate();
 			for (auto b : gc.map)
-				if (h->collide_with_border(b)) PlaySound(gc.boop);
+				if (h->collide_with_border(*b)) PlaySound(gc.boop);
 			for (auto h2 : gc.horses)
 				if (h->collide_with_horse(h2)) PlaySound(gc.boop);
 
@@ -53,7 +52,7 @@ GameMode* RaceMode::update(GameContext &gc) {
 
 void RaceMode::render(GameContext &gc) {
 	ClearBackground(RAYWHITE);
-	for (auto b : gc.map) DrawRectangleRec(b, PURPLE);
+	for (auto b : gc.map) DrawRectangleRec(*b, PURPLE);
 
 	DrawTextureEx(gc.goal.texture,
                   Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
@@ -74,11 +73,13 @@ void RaceMode::render(GameContext &gc) {
 	DrawFPS(10, 10);
 }
 
+RaceMode::RaceMode() {};
+
 GameMode *MenuMode::update(GameContext &gc) {
 	if (button_race_pressed) {
 		gc.music_t.start(3);
         std::cout << "INFO: Entering Race Mode\n";
-		return new RaceMode(gc);
+		return new RaceMode();
     }
 
     if (button_edit_pressed) {
@@ -91,7 +92,7 @@ GameMode *MenuMode::update(GameContext &gc) {
 
 void MenuMode::render(GameContext &gc) {
     ClearBackground(RAYWHITE);
-    for (auto b : gc.map) DrawRectangleRec(b, PURPLE);
+    for (auto b : gc.map) DrawRectangleRec(*b, PURPLE);
 
     DrawTextureEx(gc.goal.texture,
                   Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
@@ -129,11 +130,67 @@ GameMode* EditMode::update(GameContext &gc) {
         }
     }
 
+    for (auto b : gc.map) {
+        if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y }, 5)
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+            && !mouse_in_left_upper) {
+            std::cout << "Haz hecho clic en el borde superior de un rectangulo\n";
+            mouse_in_left_upper = true;
+            selected_rectangle = b;
+        }
+
+        if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y + b->height }, 5)
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+            && !mouse_in_left_down) {
+            mouse_in_left_down = true;
+            selected_rectangle = b;
+        }
+
+        if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y }, 5)
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+            && !mouse_in_right_upper) {
+            mouse_in_right_upper = true;
+            selected_rectangle = b;
+        }
+
+        if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y + b->height }, 5)
+            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+            && !mouse_in_right_down) {
+            mouse_in_right_down = true;
+            selected_rectangle = b;
+        }
+    }
+
     if (mouse_in_uma && selected_uma != nullptr) {
         selected_uma->set_position(mouse);
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             mouse_in_uma = false;
             selected_uma = nullptr;
+        }
+    }
+
+    if (mouse_in_left_upper && selected_rectangle != nullptr) {
+        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x, selected_rectangle->y }, mouse);
+        selected_rectangle->x = mouse.x;
+        selected_rectangle->y = mouse.y;
+        selected_rectangle->height = selected_rectangle->height + pos_offset.y;
+        selected_rectangle->width = selected_rectangle->width + pos_offset.x;
+
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            mouse_in_left_upper = false;
+            selected_rectangle = nullptr;
+        }
+    }
+
+    if (mouse_in_left_down && selected_rectangle != nullptr) {
+        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x, selected_rectangle->y + selected_rectangle->height }, mouse);
+        selected_rectangle->x = mouse.x;
+        selected_rectangle->width = selected_rectangle->width + pos_offset.x;
+        selected_rectangle->height = selected_rectangle->height - pos_offset.y;
+
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            mouse_in_left_down = false;
+            selected_rectangle = nullptr;
         }
     }
 
@@ -143,7 +200,11 @@ GameMode* EditMode::update(GameContext &gc) {
 void EditMode::render(GameContext &gc) {
     ClearBackground(RAYWHITE);
     for (auto b : gc.map) {
-        DrawRectangleRec(b, PURPLE);
+        DrawRectangleRec(*b, PURPLE);
+        DrawCircle(b->x, b->y, 5, BLUE);
+        DrawCircle(b->x + b->width, b->y, 5, BLUE);
+        DrawCircle(b->x, b->y + b->height, 5, BLUE);
+        DrawCircle(b->x + b->width, b->y + b->height, 5, BLUE);
     };
 
     for (auto h : gc.horses) h->render();

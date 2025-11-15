@@ -10,7 +10,6 @@ mkShell {
 
   buildInputs = [
     clang
-    clang-tools
     cmake
     ffmpeg
     gnumake
@@ -32,4 +31,7 @@ mkShell {
     xorg.libXrandr
     xorg.xinput
   ];
+  shellHook = ''
+    echo "¡Entorno de desarrollo listo, nya~!"
+  '';
 }

@@ -66,21 +66,21 @@ int main() {
 				ranges::to<std::vector>();
 
 	gc.map = {
-		Rectangle{0, 0, (GetScreenWidth() - 20.0f), 20},
-		Rectangle{0, 20, 20, GetScreenHeight() - 20.0f},
-		Rectangle{0, (GetScreenHeight() - 20.0f), (GetScreenWidth() - 20.0f), 20},
-		Rectangle{(GetScreenWidth() - 20.0f), 0, 20,
-				static_cast<float>(GetScreenHeight())},
-		Rectangle{200, 20, 60, 200},
-		Rectangle{340, 20, 60, 240},
-		Rectangle{440, 20, 60, 40},
-		Rectangle{540, 20, 140, 60},
-		Rectangle{480, 140, 300, 40},
-		Rectangle{20, (GetScreenHeight() - 180.0f), 100, 40},
-		Rectangle{460, (GetScreenHeight() - 180.0f), 240, 40},
-		Rectangle{200, (GetScreenHeight() - 100.0f), 60, 80},
-		Rectangle{340, (GetScreenHeight() - 60.0f), 60, 40},
-		Rectangle{460, (GetScreenHeight() - 60.0f), 240, 40},
+		new Rectangle{0, 0, (GetScreenWidth() - 20.0f), 20},
+		new Rectangle{0, 20, 20, GetScreenHeight() - 20.0f},
+		new Rectangle{0, (GetScreenHeight() - 20.0f), (GetScreenWidth() - 20.0f), 20},
+		new Rectangle{(GetScreenWidth() - 20.0f), 0, 20,
+                      static_cast<float>(GetScreenHeight())},
+		new Rectangle{200, 20, 60, 200},
+		new Rectangle{340, 20, 60, 240},
+		new Rectangle{440, 20, 60, 40},
+		new Rectangle{540, 20, 140, 60},
+		new Rectangle{480, 140, 300, 40},
+		new Rectangle{20, (GetScreenHeight() - 180.0f), 100, 40},
+		new Rectangle{460, (GetScreenHeight() - 180.0f), 240, 40},
+		new Rectangle{200, (GetScreenHeight() - 100.0f), 60, 80},
+		new Rectangle{340, (GetScreenHeight() - 60.0f), 60, 40},
+		new Rectangle{460, (GetScreenHeight() - 60.0f), 240, 40},
 	};
 
 	InitAudioDevice();
@@ -103,6 +103,14 @@ int main() {
 			current_state = next_state;
 		}
 	}
+
+    delete current_state;
+    current_state = nullptr;
+
+    for (auto b : gc.map) {
+        delete b;
+        b = nullptr;
+    }
 
 	CloseAudioDevice();
 	CloseWindow();
