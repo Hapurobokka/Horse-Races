@@ -1,15 +1,13 @@
 # Requisitos
 - Un compilador de C++ 23.
-- raylib instalado.
+- CMake
 
 # Compilar
 El comando para compilar el programa se encuentra en `justfile`.
 
 ```bash
-clang++ src/main.cpp src/horse.cpp -o target/game -lraylib --std=c++23
+just init
 
-# Tambien funciona con g++
-g++ src/main.cpp src/horse.cpp -o target/game -lraylib --std=c++23
+# Para ejecutar
+just run
 ```
-
-Probablemente sea necesario indicar al compilador donde se encuentra tu instalación de raylib.
