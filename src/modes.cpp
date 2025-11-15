@@ -41,59 +41,57 @@ void RaceMode::randomize_race(GameContext &gc) {
       Vector2{-1.5, 1.5},  Vector2{1.5, -1.5},  Vector2{-1.5, -1.5},
   };
 
-  for (auto h : gc.horses) {
-    Vector2 new_pos = starting_positions.back();
-    starting_positions.pop_back();
-    int random_pos = rand() % possible_speeds.size();
+for (auto h : gc.horses) {
+	Vector2 new_pos = starting_positions.back();
+	starting_positions.pop_back();
+	int random_pos = rand() % possible_speeds.size();
 
-    h->set_position(new_pos);
-    h->set_speed(possible_speeds[random_pos]);
-  }
+	h->set_position(new_pos);
+	h->set_speed(possible_speeds[random_pos]);
+	}
 }
 
 GameMode* RaceMode::update(GameContext &gc) {
     UpdateMusicStream(gc.ost);
     if (gc.music_t.is_done() && !race_started) {
-    race_started = true;
-    go_label.start(3);
-    if (!IsMusicStreamPlaying(gc.ost))
-      PlayMusicStream(gc.ost);
-  }
-  if (IsKeyPressed(KEY_SPACE) && !victory && race_started)
-    paused = !paused;
+		race_started = true;
+		go_label.start(3);
 
-  if (!paused && !victory && race_started) {
-    for (auto h : gc.horses) {
-      h->accelerate();
-      for (auto b : gc.map)
-        if (h->collide_with_border(b))
-          PlaySound(gc.boop);
-      for (auto h2 : gc.horses)
-        if (h->collide_with_horse(h2))
-          PlaySound(gc.boop);
+		if (!IsMusicStreamPlaying(gc.ost))
+			PlayMusicStream(gc.ost);
+	}
 
-      if (CheckCollisionCircles(h->get_position(), h->get_radius(),
-                                gc.goal.position, 10)) {
-        victory = true;
-        winner = h->get_name();
-      }
-    }
-  }
+	if (IsKeyPressed(KEY_SPACE) && !victory && race_started)
+		paused = !paused;
 
-  return nullptr;
+	if (!paused && !victory && race_started) {
+		for (auto h : gc.horses) {
+			h->accelerate();
+			for (auto b : gc.map)
+				if (h->collide_with_border(b)) PlaySound(gc.boop);
+			for (auto h2 : gc.horses)
+				if (h->collide_with_horse(h2)) PlaySound(gc.boop);
+
+			if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
+				victory = true;
+				winner = h->get_name();
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 void RaceMode::render(GameContext &gc) {
 	ClearBackground(RAYWHITE);
-	for (auto b : gc.map) {
-	DrawRectangleRec(b, PURPLE);
-	};
+	for (auto b : gc.map) DrawRectangleRec(b, PURPLE);;
+
 	DrawTextureEx(gc.goal.texture,
 				Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10}, 0.0f,
 				gc.goal.texture.width / 25000.0f, WHITE);
-	for (auto h : gc.horses) {
-	h->render();
-	};
+
+	for (auto h : gc.horses) h->render();
+
 	if (!race_started)
 		DrawText("Ready?", 350, 200, 30, GRAY);
 	if (!go_label.is_done() && !paused)
