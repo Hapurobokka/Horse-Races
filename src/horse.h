@@ -1,7 +1,7 @@
 #pragma once
 
 #include "raylib.h"
-#include <iostream>
+#include <string>
 
 class Horse {
 private:

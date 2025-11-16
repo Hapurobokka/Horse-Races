@@ -5,6 +5,7 @@
 
 #include <vector>
 
+// Timer para contar el tiempo.
 class Timer {
 private:
 	double start_time;
@@ -41,16 +42,22 @@ struct GameContext {
 	}
 };
 
+// Clase base para cada modo de juego.
 class GameMode {
 public:
 	virtual ~GameMode() = default;
 
+    // Método responsable de manejar la lógica del juego.
+    // Desde aquí viene cualquier cambio a otro modo.
 	virtual GameMode *update(GameContext &gc) = 0;
+    // Método responsable de dibujar todo a la pantalla.
 	virtual void render(GameContext &gc) = 0;
 };
 
 class RaceMode : public GameMode {
 private:
+    // Idealmente cualquier estado que necesite tu modo entre bucles y no
+    // necesita estar disponible para otros modos debería guardarse aquí.
 	Timer go_label{};
 	bool paused = false;
 	bool race_started = false;

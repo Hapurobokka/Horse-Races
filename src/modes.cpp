@@ -1,10 +1,14 @@
 #include "modes.h"
 
+#include <iostream>
+
 #include "raylib.h"
 #include "raymath.h"
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
+
+using std::cout;
 
 void Timer::start(double lf) {
     start_time = GetTime();
@@ -20,6 +24,7 @@ double Timer::get_elapsed() { return GetTime() - start_time; }
 GameMode* RaceMode::update(GameContext &gc) {
     UpdateMusicStream(gc.ost);
     if (gc.music_t.is_done() && !race_started) {
+
 		race_started = true;
 		go_label.start(3);
 
@@ -38,9 +43,7 @@ GameMode* RaceMode::update(GameContext &gc) {
 			for (auto h2 : gc.horses)
 				if (h->collide_with_horse(h2)) PlaySound(gc.boop);
 
-			if (CheckCollisionCircles(h->get_position(),
-                                      h->get_radius(),
-                                      gc.goal.position, 10)) {
+			if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
 				victory = true;
 				winner = h->get_name();
 			}
@@ -78,12 +81,12 @@ RaceMode::RaceMode() {};
 GameMode *MenuMode::update(GameContext &gc) {
 	if (button_race_pressed) {
 		gc.music_t.start(3);
-        std::cout << "INFO: Entering Race Mode\n";
+        cout << "INFO: Entering Race Mode\n";
 		return new RaceMode();
     }
 
     if (button_edit_pressed) {
-        std::cout << "INFO: Entering Edit Mode\n";
+        cout << "INFO: Entering Edit Mode\n";
         return new EditMode();
     }
 
@@ -184,7 +187,8 @@ void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
             && mouse_in_border == GrabbedBorder::None
-            && !mouse_in_uma) {
+            && !mouse_in_uma
+        ) {
             mouse_in_border = GrabbedBorder::LeftUpper;
             selected_rectangle = b;
         }
@@ -192,7 +196,8 @@ void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y + b->height }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
             && mouse_in_border == GrabbedBorder::None
-            && !mouse_in_uma) {
+            && !mouse_in_uma
+        ) {
             mouse_in_border = GrabbedBorder::LeftDown;
             selected_rectangle = b;
         }
@@ -200,7 +205,8 @@ void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
             && mouse_in_border == GrabbedBorder::None
-            && !mouse_in_uma) {
+            && !mouse_in_uma
+        ) {
             mouse_in_border = GrabbedBorder::RightUpper;
             selected_rectangle = b;
         }
@@ -208,7 +214,8 @@ void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y + b->height }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
             && mouse_in_border == GrabbedBorder::None
-            && !mouse_in_uma) {
+            && !mouse_in_uma
+        ) {
             mouse_in_border = GrabbedBorder::RightDown;
             selected_rectangle = b;
         }
@@ -220,8 +227,9 @@ void EditMode::check_if_mouse_in_horse(GameContext &gc, Vector2 mouse) {
         if (CheckCollisionPointCircle(mouse, h->get_position(), h->get_radius())
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
             && mouse_in_border == GrabbedBorder::None
-            && !mouse_in_uma) {
-            std::cout << "Haz hecho click en " << h->get_name() << "\n";
+            && !mouse_in_uma
+        ) {
+            cout << "Haz hecho click en " << h->get_name() << "\n";
             mouse_in_uma = true;
             selected_uma = h;
         }
@@ -232,7 +240,7 @@ GameMode* EditMode::update(GameContext &gc) {
     Vector2 mouse = GetMousePosition();
 
     if (back_button_pressed) {
-        std::cout << "INFO: Entering Menu Mode\n";
+        cout << "INFO: Entering Menu Mode\n";
         return new MenuMode();
     }
 

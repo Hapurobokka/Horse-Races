@@ -49,6 +49,7 @@ int main() {
 	InitWindow(WIDTH, HEIGHT, "Umamusume");
 	SetTargetFPS(60);
 
+    // Creamos un "contexto global".
 	GameContext gc{};
 
 	gc.boop = LoadSound("assets/music/collide.wav");
@@ -60,10 +61,11 @@ int main() {
 		{"BAKUSHIN", "bakushin.png"}, {"CHIYO", "chiyono.png"},
 		{"GLSP", "gold.png"},         {"SILSUZ", "silsuz.png"}};
 
-	gc.horses = p_horses | views::transform([](const tuple<string, string> t) {
-				return new Horse(get<0>(t), get<1>(t));
-				}) |
-				ranges::to<std::vector>();
+	gc.horses = p_horses
+        | views::transform([](const tuple<string, string> t) {
+            return new Horse(get<0>(t), get<1>(t));
+        })
+        | ranges::to<std::vector>();
 
 	gc.map = {
 		new Rectangle{0, 0, (GetScreenWidth() - 20.0f), 20},
@@ -85,20 +87,26 @@ int main() {
 
 	InitAudioDevice();
 
-    gc.goal = Goal{ Vector2{ GetScreenWidth() - 60.0f, 60 }, LoadTexture("assets/images/carrot.png") };
+    gc.goal = Goal{
+        Vector2{ GetScreenWidth() - 60.0f, 60 }, LoadTexture("assets/images/carrot.png")
+    };
 
     randomize_race(gc);
 
+    // Creamos el primer modo de todos
 	GameMode *current_state = new MenuMode();
 
 	while (!WindowShouldClose()) {
+        // El método update puede devolver un nuevo modo.
 		GameMode *next_state = current_state->update(gc);
 
 		BeginDrawing();
+        // En este paso se dibuja toda la pantalla.
 		current_state->render(gc);
 		EndDrawing();
 
 		if (next_state != nullptr) {
+            // Si recibimos un nuevo estado, el actual es reemplazado.
 			delete current_state;
 			current_state = next_state;
 		}
@@ -107,6 +115,7 @@ int main() {
     delete current_state;
     current_state = nullptr;
 
+    // Limpieza
     for (auto b : gc.map) {
         delete b;
         b = nullptr;
