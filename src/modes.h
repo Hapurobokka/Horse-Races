@@ -86,6 +86,11 @@ private:
     Horse* selected_uma = nullptr;
     Rectangle* selected_rectangle = nullptr;
     bool is_mouse_in_border();
+    void drop_border();
+    void check_if_mouse_in_border(GameContext &gc, Vector2 mouse);
+    void check_if_mouse_in_horse(GameContext &gc, Vector2 mouse);
+    void move_border(Vector2 mouse);
+    void move_horse(Vector2 mouse);
 
 public:
 	EditMode() {};
