@@ -78,15 +78,18 @@ class EditMode : public GameMode {
 private:
     bool back_button_pressed = false;
     bool mouse_in_uma = false;
-    bool mouse_in_left_upper = false;
-    bool mouse_in_left_down = false;
-    bool mouse_in_right_upper = false;
-    bool mouse_in_right_down = false;
 
+    enum class GrabbedBorder {
+        None,
+        LeftUpper,
+        LeftDown,
+        RightUpper,
+        RightDown
+    };
+
+    GrabbedBorder mouse_in_border = EditMode::GrabbedBorder::None;
     Horse* selected_uma = nullptr;
     Rectangle* selected_rectangle = nullptr;
-    bool is_mouse_in_border();
-    void drop_border();
     void check_if_mouse_in_border(GameContext &gc, Vector2 mouse);
     void check_if_mouse_in_horse(GameContext &gc, Vector2 mouse);
     void move_border(Vector2 mouse);

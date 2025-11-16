@@ -112,23 +112,6 @@ void MenuMode::render(GameContext &gc) {
     DrawFPS(10, 10);
 }
 
-bool EditMode::is_mouse_in_border() {
-    return mouse_in_left_down ||
-           mouse_in_right_down ||
-           mouse_in_left_upper ||
-           mouse_in_right_upper;
-}
-
-void EditMode::drop_border() {
-    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-        mouse_in_left_upper = false;
-        mouse_in_left_down = false;
-        mouse_in_right_upper = false;
-        mouse_in_right_down = false;
-        selected_rectangle = nullptr;
-    }
-}
-
 void EditMode::move_horse(Vector2 mouse) {
     if (mouse_in_uma && selected_uma != nullptr) {
         selected_uma->set_position(mouse);
@@ -141,44 +124,58 @@ void EditMode::move_horse(Vector2 mouse) {
 
 
 void EditMode::move_border(Vector2 mouse) {
-    if (mouse_in_left_upper && selected_rectangle != nullptr) {
-        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x,
-                                                      selected_rectangle->y }, mouse);
+    if (selected_rectangle == nullptr)
+        return;
+
+    Vector2 pos_offset {};
+
+    switch (mouse_in_border) {
+    case GrabbedBorder::LeftUpper:
+        pos_offset = Vector2Subtract(
+            Vector2{ selected_rectangle->x, selected_rectangle->y },
+            mouse
+        );
         selected_rectangle->x = mouse.x;
         selected_rectangle->y = mouse.y;
         selected_rectangle->width = selected_rectangle->width + pos_offset.x;
         selected_rectangle->height = selected_rectangle->height + pos_offset.y;
-
-        drop_border();
-    }
-
-    if (mouse_in_left_down && selected_rectangle != nullptr) {
-        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x,
-                                                      selected_rectangle->y + selected_rectangle->height }, mouse);
+        break;
+    case GrabbedBorder::LeftDown:
+        pos_offset = Vector2Subtract(
+            Vector2{ selected_rectangle->x, selected_rectangle->y + selected_rectangle->height },
+            mouse
+        );
         selected_rectangle->x = mouse.x;
         selected_rectangle->width = selected_rectangle->width + pos_offset.x;
         selected_rectangle->height = selected_rectangle->height - pos_offset.y;
-
-        drop_border();
-    }
-
-    if (mouse_in_right_upper && selected_rectangle != nullptr) {
-        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x + selected_rectangle->width,
-                                                      selected_rectangle->y }, mouse);
+        break;
+    case GrabbedBorder::RightUpper:
+        pos_offset = Vector2Subtract(
+            Vector2{selected_rectangle->x + selected_rectangle->width, selected_rectangle->y },
+            mouse
+        );
         selected_rectangle->width = selected_rectangle->width - pos_offset.x;
         selected_rectangle->height = selected_rectangle->height + pos_offset.y;
         selected_rectangle->y = mouse.y;
-
-        drop_border();
-    }
-
-    if (mouse_in_right_down && selected_rectangle != nullptr) {
-        Vector2 pos_offset = Vector2Subtract(Vector2{ selected_rectangle->x + selected_rectangle->width,
-                                                      selected_rectangle->y + selected_rectangle->height }, mouse);
+        break;
+    case GrabbedBorder::RightDown:
+        pos_offset = Vector2Subtract(
+            Vector2{
+                selected_rectangle->x + selected_rectangle->width,
+                selected_rectangle->y + selected_rectangle->height
+            },
+            mouse
+        );
         selected_rectangle->width = selected_rectangle->width - pos_offset.x;
         selected_rectangle->height = selected_rectangle->height - pos_offset.y;
+        break;
+    case GrabbedBorder::None:
+        return;
+    }
 
-        drop_border();
+    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        mouse_in_border = GrabbedBorder::None;
+        selected_rectangle = nullptr;
     }
 }
 
@@ -186,35 +183,33 @@ void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
     for (auto b : gc.map) {
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && !mouse_in_left_upper
-            && !mouse_in_uma
-            && !is_mouse_in_border()) {
-            mouse_in_left_upper = true;
+            && mouse_in_border == GrabbedBorder::None
+            && !mouse_in_uma) {
+            mouse_in_border = GrabbedBorder::LeftUpper;
             selected_rectangle = b;
         }
 
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x, b->y + b->height }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && !mouse_in_left_down
-            && !mouse_in_uma
-            && !is_mouse_in_border()) {
-            mouse_in_left_down = true;
+            && mouse_in_border == GrabbedBorder::None
+            && !mouse_in_uma) {
+            mouse_in_border = GrabbedBorder::LeftDown;
             selected_rectangle = b;
         }
 
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && !mouse_in_uma
-            && !is_mouse_in_border()) {
-            mouse_in_right_upper = true;
+            && mouse_in_border == GrabbedBorder::None
+            && !mouse_in_uma) {
+            mouse_in_border = GrabbedBorder::RightUpper;
             selected_rectangle = b;
         }
 
         if (CheckCollisionPointCircle(mouse, Vector2{ b->x + b->width, b->y + b->height }, 5)
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && !mouse_in_uma
-            && !is_mouse_in_border()) {
-            mouse_in_right_down = true;
+            && mouse_in_border == GrabbedBorder::None
+            && !mouse_in_uma) {
+            mouse_in_border = GrabbedBorder::RightDown;
             selected_rectangle = b;
         }
     }
@@ -224,8 +219,8 @@ void EditMode::check_if_mouse_in_horse(GameContext &gc, Vector2 mouse) {
     for (auto h : gc.horses) {
         if (CheckCollisionPointCircle(mouse, h->get_position(), h->get_radius())
             && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && !mouse_in_uma
-            && !is_mouse_in_border()) {
+            && mouse_in_border == GrabbedBorder::None
+            && !mouse_in_uma) {
             std::cout << "Haz hecho click en " << h->get_name() << "\n";
             mouse_in_uma = true;
             selected_uma = h;
