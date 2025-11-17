@@ -1,17 +1,17 @@
 #include "horse.h"
 
 #include <iostream>
+#include <utility>
 #include "raylib.h"
 #include "raymath.h"
 
 using std::string;
 using std::cout;
 
-Horse::Horse(string n, string t) : name { n } {
+Horse::Horse(string n, string t) : name {std::move( n )}, radius(20) {
     cout << name << " creado.\n";
     t = "assets/images/" + t;
     texture = LoadTexture(t.c_str());
-    radius = 20;
 }
 
 
@@ -39,8 +39,9 @@ void Horse::accelerate() {
 }
 
 bool Horse::collide_with_border(Rectangle &b) {
-    if (!CheckCollisionCircleRec(position, radius, b))
+    if (!CheckCollisionCircleRec(position, radius, b)) {
         return false;
+    }
 
     int center_x = b.x + b.width / 2;
     int center_y = b.y + b.height / 2;
@@ -79,7 +80,7 @@ bool Horse::collide_with_horse(Horse *h) {
         Vector2 relative_velocity = Vector2Subtract(h->speed, speed);
         float v_along_normal = Vector2DotProduct(relative_velocity, normal);
 
-        if (v_along_normal > 0) return false;
+        if (v_along_normal > 0) { return false; }
 
         Vector2 impulse = Vector2Scale(normal, v_along_normal);
 
