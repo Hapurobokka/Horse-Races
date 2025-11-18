@@ -1,21 +1,22 @@
 #include "horse.h"
 
-#include <iostream>
+#include <print>
 #include <utility>
 #include "raylib.h"
 #include "raymath.h"
 
 using std::string;
-using std::cout;
 
 Horse::Horse(string n, string t) : name {std::move( n )}, radius(20) {
-    cout << name << " creado.\n";
+    std::println("{:} creado", name);
     t = "assets/images/" + t;
     texture = LoadTexture(t.c_str());
 }
 
 
 void Horse::render() {
+    int text_width = MeasureText(name.c_str(), 8);
+
     DrawTextureEx(
         texture,
         Vector2{position.x - radius, position.y - radius},
@@ -23,7 +24,6 @@ void Horse::render() {
         texture.width / 6000.0,
         WHITE
     );
-    int text_width = MeasureText(name.c_str(), 8);
     DrawText(
         name.c_str(),
         position.x - text_width / 2.0f,
@@ -51,16 +51,18 @@ bool Horse::collide_with_border(Rectangle &b) {
 
     if (abs(dx / b.width) > abs(dy / b.height)) {
         speed.x *= -1.0;
-        if (dx > 0)
+        if (dx > 0) {
             position.x = b.x + b.width + radius;
-        else
+        } else {
             position.x = b.x - radius;
+        }
     } else {
         speed.y *= -1.0;
-        if (dy > 0)
+        if (dy > 0) {
             position.y = b.y + b.height + radius;
-        else
+        } else {
             position.y = b.y - radius;
+        }
     }
     return true;
 }
@@ -94,5 +96,6 @@ bool Horse::collide_with_horse(Horse *h) {
 }
 
 Horse::~Horse() {
+    std::println("{:} ha sido liberado", name);
     UnloadTexture(texture);
 }

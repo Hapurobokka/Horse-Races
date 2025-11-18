@@ -1,7 +1,8 @@
 #include "modes.h"
 
-#include <iostream>
+#include <format>
 #include <memory>
+#include <print>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -9,7 +10,6 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-using std::cout;
 using std::unique_ptr;
 
 void Timer::start(double lf) {
@@ -88,12 +88,12 @@ void RaceMode::render(GameContext &gc) {
 unique_ptr<GameMode> MenuMode::update(GameContext &gc) {
 	if (button_race_pressed) {
 		gc.music_t.start(3);
-        cout << "INFO: Entering Race Mode\n";
+        std::println("INFO: Entering Race Mode");
 		return std::make_unique<RaceMode>();
     }
 
     if (button_edit_pressed) {
-        cout << "INFO: Entering Edit Mode\n";
+        std::println("INFO: Entering Edit Mode");
         return std::make_unique<EditMode>();
     }
 
@@ -234,7 +234,7 @@ void EditMode::check_if_mouse_in_horse(GameContext &gc, Vector2 mouse) {
             && mouse_in_border == GrabbedBorder::NONE
             && !mouse_in_uma
         ) {
-            cout << "Haz hecho click en " << h->get_name() << "\n";
+            std::println("Haz hecho click en {:}", h->get_name());
             mouse_in_uma = true;
             selected_uma = h.get();
         }
@@ -245,7 +245,7 @@ unique_ptr<GameMode> EditMode::update(GameContext &gc) {
     Vector2 mouse = GetMousePosition();
 
     if (back_button_pressed) {
-        cout << "INFO: Entering Menu Mode\n";
+        std::println("INFO: Entering Menu Mode");
         return std::make_unique<MenuMode>();
     }
 
@@ -268,7 +268,7 @@ void EditMode::render(GameContext &gc) {
         DrawCircle(b.x + b.width, b.y + b.height, 5.0F, BLUE);
     };
 
-    for (const auto &h : gc.horses) h->render();
+    for (const auto &h : gc.horses) { h->render(); }
 
     if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
         back_button_pressed = true;

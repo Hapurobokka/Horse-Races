@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <memory>
+#include <print>
 #include <ranges>
 #include "raylib.h"
 #include <string>
@@ -47,7 +48,7 @@ void randomize_race(GameContext &gc) {
 
 int main() {
 	SetConfigFlags(FLAG_MSAA_4X_HINT);
-	InitWindow(WIDTH, HEIGHT, "Umamusume");
+	InitWindow(WIDTH, HEIGHT, "Horse Racing");
 	SetTargetFPS(60);
 
     // Creamos un "contexto global".
@@ -102,8 +103,8 @@ int main() {
         // El método update puede devolver un nuevo modo.
 		unique_ptr<GameMode> next_state (current_state->update(gc));
 
-		BeginDrawing();
         // En este paso se dibuja toda la pantalla.
+		BeginDrawing();
 		current_state->render(gc);
 		EndDrawing();
 
@@ -113,6 +114,7 @@ int main() {
 		}
 	}
 
+    std::println("Modo único liberado");
 	CloseAudioDevice();
 	CloseWindow();
 	return 0;

@@ -16,6 +16,7 @@ mkShell {
     libGL
     libffi
     libx11
+    ninja
     libxkbcommon
     mesa
     pkg-config

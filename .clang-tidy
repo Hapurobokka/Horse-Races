@@ -2,7 +2,9 @@
 Checks: >
   -*,
   bugprone-*,
-  clang-analyzer-*,
+  clang-analyzer-*,,
+  -bugprone-narrowing-conversions,
+  -bugprone-easily-swappable-parameters,
   cppcoreguidelines-owning-memory,
   cppcoreguidelines-no-malloc,
   cppcoreguidelines-pro-bounds-pointer-arithmetic,
