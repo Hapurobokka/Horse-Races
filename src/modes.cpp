@@ -1,5 +1,7 @@
 #include "modes.h"
 
+#include <bits/stdc++.h>
+#include <cstdio>
 #include <format>
 #include <memory>
 #include <print>
@@ -21,75 +23,88 @@ bool Timer::is_done() const {
     return GetTime() - start_time >= lifetime;
 }
 
-double Timer::get_elapsed() const { return GetTime() - start_time; }
+double Timer::get_elapsed() const {
+    return GetTime() - start_time;
+}
 
-unique_ptr<GameMode> RaceMode::update(GameContext &gc) {
+unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
     UpdateMusicStream(gc.ost);
     if (gc.music_t.is_done() && !race_started) {
 
-		race_started = true;
-		go_label.start(3);
+        race_started = true;
+        go_label.start(3);
 
-		if (!IsMusicStreamPlaying(gc.ost)) {
-			PlayMusicStream(gc.ost);
+        if (!IsMusicStreamPlaying(gc.ost)) {
+            PlayMusicStream(gc.ost);
         }
-	}
-
-	if (IsKeyPressed(KEY_SPACE) && !victory && race_started) {
-		paused = !paused;
     }
 
-	if (!paused && !victory && race_started) {
-		for (const auto& h : gc.horses) {
-			h->accelerate();
-			for (auto b : gc.map) {
-				if (h->collide_with_border(b)){ PlaySound(gc.boop); }
+    if (IsKeyPressed(KEY_SPACE) && !victory && race_started) {
+        paused = !paused;
+    }
+
+    if (!paused && !victory && race_started) {
+        for (const auto& h : gc.horses) {
+            h->accelerate();
+            for (auto b : gc.map) {
+                if (h->collide_with_border(b)) {
+                    PlaySound(gc.boop);
+                }
             }
-			for (const auto& h2 : gc.horses) {
-				if (h->collide_with_horse(h2.get())){ PlaySound(gc.boop); }
+            for (const auto& h2 : gc.horses) {
+                if (h->collide_with_horse(h2.get())) {
+                    PlaySound(gc.boop);
+                }
             }
 
-			if (CheckCollisionCircles(h->get_position(), h->get_radius(), gc.goal.position, 10)) {
-				victory = true;
-				winner = h->get_name();
-			}
-		}
-	}
+            if (CheckCollisionCircles(
+                    h->get_position(), h->get_radius(), gc.goal.position, 10)) {
+                victory = true;
+                winner = h->get_name();
+            }
+        }
+    }
 
-	return nullptr;
+    return nullptr;
 }
 
-void RaceMode::render(GameContext &gc) {
-	ClearBackground(RAYWHITE);
-	for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); }
+void RaceMode::render(GameContext& gc) {
+    ClearBackground(RAYWHITE);
+    for (auto b : gc.map) {
+        DrawRectangleRec(b, PURPLE);
+    }
 
-	DrawTextureEx(gc.goal.texture,
-                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+    DrawTextureEx(gc.goal.texture,
+                  Vector2{ gc.goal.position.x - 10, gc.goal.position.y - 10 },
                   0.0F,
-                  gc.goal.texture.width / 25000.0F, WHITE);
+                  gc.goal.texture.width / 25000.0F,
+                  WHITE);
 
-    for (const auto& h : gc.horses) { h->render(); }
+    for (const auto& h : gc.horses) {
+        h->render();
+    }
 
-	if (!race_started) {
-		DrawText("Ready?", 350, 200, 30, GRAY);
+    if (!race_started) {
+        DrawText("Ready?", 350, 200, 30, GRAY);
     }
-	if (!go_label.is_done() && !paused) {
-		DrawText("GO!", 350, 200, 30, GRAY);
+    if (!go_label.is_done() && !paused) {
+        DrawText("GO!", 350, 200, 30, GRAY);
     }
-	if (paused) {
-		DrawText("Paused", 350, 200, 30, GRAY);
+    if (paused) {
+        DrawText("Paused", 350, 200, 30, GRAY);
     }
-	if (victory) {
-		DrawText(TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
+    if (victory) {
+        DrawText(
+            TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
     }
-	DrawFPS(10, 10);
+    DrawFPS(10, 10);
 }
 
-unique_ptr<GameMode> MenuMode::update(GameContext &gc) {
-	if (button_race_pressed) {
-		gc.music_t.start(3);
+unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
+    if (button_race_pressed) {
+        gc.music_t.start(3);
         std::println("INFO: Entering Race Mode");
-		return std::make_unique<RaceMode>();
+        return std::make_unique<RaceMode>();
     }
 
     if (button_edit_pressed) {
@@ -100,25 +115,29 @@ unique_ptr<GameMode> MenuMode::update(GameContext &gc) {
     return nullptr;
 }
 
-void MenuMode::render(GameContext &gc) {
+void MenuMode::render(GameContext& gc) {
     ClearBackground(RAYWHITE);
-    for (auto b : gc.map) { DrawRectangleRec(b, PURPLE); }
+    for (auto b : gc.map) {
+        DrawRectangleRec(b, PURPLE);
+    }
 
     DrawTextureEx(gc.goal.texture,
-                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+                  Vector2{ gc.goal.position.x - 10, gc.goal.position.y - 10 },
                   0.0F,
-                  gc.goal.texture.width / 25000.0F, WHITE);
+                  gc.goal.texture.width / 25000.0F,
+                  WHITE);
 
-    for (const auto& h : gc.horses) { h->render(); }
+    for (const auto& h : gc.horses) {
+        h->render();
+    }
 
-    if (GuiButton(Rectangle{275, 250, 200, 30}, "Start")) {
+    if (GuiButton(Rectangle{ 275, 250, 200, 30 }, "Start")) {
         button_race_pressed = true;
     }
 
-    if (GuiButton(Rectangle{275, 280, 200, 30}, "Edit")) {
+    if (GuiButton(Rectangle{ 275, 280, 200, 30 }, "Edit")) {
         button_edit_pressed = true;
     }
-
 
     DrawText("Press start to start", 250, 200, 30, GRAY);
     DrawFPS(10, 10);
@@ -134,63 +153,64 @@ void EditMode::move_horse(Vector2 mouse) {
     }
 }
 
-
-void EditMode::move_border(GameContext &gc, Vector2 mouse) {
-    Vector2 pos_offset {};
+void EditMode::move_border(GameContext& gc, Vector2 mouse) {
+    Vector2 pos_offset{};
 
     switch (mouse_in_border) {
-    case GrabbedBorder::LEFT_UPPER:
-        pos_offset = Vector2Subtract(
-            Vector2{ gc.map[i_rectangle].x, gc.map[i_rectangle].y },
-            mouse
-        );
-        gc.map[i_rectangle].x = mouse.x;
-        gc.map[i_rectangle].y = mouse.y;
-        gc.map[i_rectangle].width = gc.map[i_rectangle].width + pos_offset.x;
-        gc.map[i_rectangle].height = gc.map[i_rectangle].height + pos_offset.y;
-        break;
-    case GrabbedBorder::LEFT_DOWN:
-        pos_offset = Vector2Subtract(
-            Vector2{ gc.map[i_rectangle].x, gc.map[i_rectangle].y + gc.map[i_rectangle].height },
-            mouse
-        );
-        gc.map[i_rectangle].x = mouse.x;
-        gc.map[i_rectangle].width = gc.map[i_rectangle].width + pos_offset.x;
-        gc.map[i_rectangle].height = gc.map[i_rectangle].height - pos_offset.y;
-        break;
-    case GrabbedBorder::RIGHT_UPPER:
-        pos_offset = Vector2Subtract(
-            Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width, gc.map[i_rectangle].y },
-            mouse
-        );
-        gc.map[i_rectangle].width = gc.map[i_rectangle].width - pos_offset.x;
-        gc.map[i_rectangle].height = gc.map[i_rectangle].height + pos_offset.y;
-        gc.map[i_rectangle].y = mouse.y;
-        break;
-    case GrabbedBorder::RIGHT_DOWN:
-        pos_offset = Vector2Subtract(
-            Vector2{
-                gc.map[i_rectangle].x + gc.map[i_rectangle].width,
-                gc.map[i_rectangle].y + gc.map[i_rectangle].height
-            },
-            mouse
-        );
-        gc.map[i_rectangle].width = gc.map[i_rectangle].width - pos_offset.x;
-        gc.map[i_rectangle].height = gc.map[i_rectangle].height - pos_offset.y;
-        break;
-    case GrabbedBorder::CENTER:
-        pos_offset = Vector2Subtract(
-            Vector2{
-                gc.map[i_rectangle].x + (gc.map[i_rectangle].width / 2.0F),
-                gc.map[i_rectangle].y + (gc.map[i_rectangle].height / 2.0F)
-            },
-            mouse
-        );
-        gc.map[i_rectangle].x -= pos_offset.x;
-        gc.map[i_rectangle].y -= pos_offset.y;
-        break;
-    case GrabbedBorder::NONE:
-        return;
+        case GrabbedBorder::LEFT_UPPER:
+            pos_offset = Vector2Subtract(
+                Vector2{ gc.map[i_rectangle].x, gc.map[i_rectangle].y }, mouse);
+            gc.map[i_rectangle].x = mouse.x;
+            gc.map[i_rectangle].y = mouse.y;
+            gc.map[i_rectangle].width =
+                gc.map[i_rectangle].width + pos_offset.x;
+            gc.map[i_rectangle].height =
+                gc.map[i_rectangle].height + pos_offset.y;
+            break;
+        case GrabbedBorder::LEFT_DOWN:
+            pos_offset = Vector2Subtract(
+                Vector2{ gc.map[i_rectangle].x,
+                         gc.map[i_rectangle].y + gc.map[i_rectangle].height },
+                mouse);
+            gc.map[i_rectangle].x = mouse.x;
+            gc.map[i_rectangle].width =
+                gc.map[i_rectangle].width + pos_offset.x;
+            gc.map[i_rectangle].height =
+                gc.map[i_rectangle].height - pos_offset.y;
+            break;
+        case GrabbedBorder::RIGHT_UPPER:
+            pos_offset = Vector2Subtract(
+                Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width,
+                         gc.map[i_rectangle].y },
+                mouse);
+            gc.map[i_rectangle].width =
+                gc.map[i_rectangle].width - pos_offset.x;
+            gc.map[i_rectangle].height =
+                gc.map[i_rectangle].height + pos_offset.y;
+            gc.map[i_rectangle].y = mouse.y;
+            break;
+        case GrabbedBorder::RIGHT_DOWN:
+            pos_offset = Vector2Subtract(
+                Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width,
+                         gc.map[i_rectangle].y + gc.map[i_rectangle].height },
+                mouse);
+            gc.map[i_rectangle].width =
+                gc.map[i_rectangle].width - pos_offset.x;
+            gc.map[i_rectangle].height =
+                gc.map[i_rectangle].height - pos_offset.y;
+            break;
+        case GrabbedBorder::CENTER:
+            pos_offset = Vector2Subtract(
+                Vector2{ gc.map[i_rectangle].x +
+                             (gc.map[i_rectangle].width / 2.0F),
+                         gc.map[i_rectangle].y +
+                             (gc.map[i_rectangle].height / 2.0F) },
+                mouse);
+            gc.map[i_rectangle].x -= pos_offset.x;
+            gc.map[i_rectangle].y -= pos_offset.y;
+            break;
+        case GrabbedBorder::NONE:
+            return;
     }
 
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -199,48 +219,60 @@ void EditMode::move_border(GameContext &gc, Vector2 mouse) {
 }
 
 bool EditMode::check_if_mouse_in_point(Vector2 mouse, Vector2 point) {
-    return (CheckCollisionPointCircle(mouse, point, 5)
-     && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-     && mouse_in_border == GrabbedBorder::NONE
-     && !mouse_in_uma);
+    return (CheckCollisionPointCircle(mouse, point, 5) &&
+            mouse_in_border == GrabbedBorder::NONE && !mouse_in_uma);
 }
 
-void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
+void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
-        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x, gc.map[i].y })) {
+        if (check_if_mouse_in_point(mouse,
+                                    Vector2{ gc.map[i].x, gc.map[i].y }) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             mouse_in_border = GrabbedBorder::LEFT_UPPER;
             i_rectangle = i;
         }
 
-        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height })) {
+        if (check_if_mouse_in_point(
+                mouse,
+                Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height }) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             mouse_in_border = GrabbedBorder::LEFT_DOWN;
             i_rectangle = i;
         }
 
-        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y })) {
+        if (check_if_mouse_in_point(
+                mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y }) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             mouse_in_border = GrabbedBorder::RIGHT_UPPER;
             i_rectangle = i;
         }
 
-        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y + gc.map[i].height })) {
+        if (check_if_mouse_in_point(
+                mouse,
+                Vector2{ gc.map[i].x + gc.map[i].width,
+                         gc.map[i].y + gc.map[i].height }) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             mouse_in_border = GrabbedBorder::RIGHT_DOWN;
             i_rectangle = i;
         }
 
-        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + (gc.map[i].width / 2), gc.map[i].y + (gc.map[i].height / 2) })) {
+        if (check_if_mouse_in_point(
+                mouse,
+                Vector2{ gc.map[i].x + (gc.map[i].width / 2),
+                         gc.map[i].y + (gc.map[i].height / 2) }) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             mouse_in_border = GrabbedBorder::CENTER;
             i_rectangle = i;
         }
     }
 }
 
-void EditMode::check_if_mouse_in_horse(GameContext &gc, Vector2 mouse) {
+void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 mouse) {
     for (const auto& h : gc.horses) {
-        if (CheckCollisionPointCircle(mouse, h->get_position(), h->get_radius())
-            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && mouse_in_border == GrabbedBorder::NONE
-            && !mouse_in_uma
-        ) {
+        if (CheckCollisionPointCircle(
+                mouse, h->get_position(), h->get_radius()) &&
+            IsMouseButtonDown(MOUSE_LEFT_BUTTON) &&
+            mouse_in_border == GrabbedBorder::NONE && !mouse_in_uma) {
             std::println("Haz hecho click en {:}", h->get_name());
             mouse_in_uma = true;
             selected_uma = h.get();
@@ -248,12 +280,30 @@ void EditMode::check_if_mouse_in_horse(GameContext &gc, Vector2 mouse) {
     }
 }
 
-unique_ptr<GameMode> EditMode::update(GameContext &gc) {
+unique_ptr<GameMode> EditMode::update(GameContext& gc) {
     Vector2 mouse = GetMousePosition();
 
     if (back_button_pressed) {
         std::println("INFO: Entering Menu Mode");
         return std::make_unique<MenuMode>();
+    }
+
+    if (IsKeyPressed(KEY_A)) {
+        gc.map.emplace_back(Rectangle{ (GetScreenWidth() / 2.0F) - 50,
+                                       (GetScreenHeight() / 2.0F) - 50,
+                                       100,
+                                       100 });
+    }
+
+    for (int i = 0; i < (int)gc.map.size(); i++) {
+        if (check_if_mouse_in_point(
+                mouse,
+                Vector2{ gc.map[i].x + (gc.map[i].width / 2),
+                         gc.map[i].y + (gc.map[i].height / 2) }) &&
+            IsKeyPressed(KEY_D)) {
+            std::println("Rectángulo {:} listo para ser borrado", i);
+            gc.map.erase(gc.map.begin() + i);
+        }
     }
 
     check_if_mouse_in_horse(gc, mouse);
@@ -265,7 +315,7 @@ unique_ptr<GameMode> EditMode::update(GameContext &gc) {
     return nullptr;
 }
 
-void EditMode::render(GameContext &gc) {
+void EditMode::render(GameContext& gc) {
     ClearBackground(RAYWHITE);
     for (auto b : gc.map) {
         DrawRectangleRec(b, PURPLE);
@@ -276,16 +326,17 @@ void EditMode::render(GameContext &gc) {
         DrawCircle(b.x + (b.width / 2), b.y + (b.height / 2), 5.0f, BLUE);
     };
 
-    for (const auto &h : gc.horses) { h->render(); }
+    for (const auto& h : gc.horses) {
+        h->render();
+    }
 
     if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
         back_button_pressed = true;
     }
 
     DrawTextureEx(gc.goal.texture,
-                  Vector2{gc.goal.position.x - 10, gc.goal.position.y - 10},
+                  Vector2{ gc.goal.position.x - 10, gc.goal.position.y - 10 },
                   0.0F,
                   gc.goal.texture.width / 25000.0F,
                   WHITE);
 }
-
