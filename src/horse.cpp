@@ -1,36 +1,33 @@
 #include "horse.h"
 
-#include <print>
-#include <utility>
 #include "raylib.h"
 #include "raymath.h"
+#include <print>
+#include <utility>
 
 using std::string;
 
-Horse::Horse(string n, string t) : name {std::move( n )}, radius(20) {
+Horse::Horse(string n, string t)
+    : name{ std::move(n) }
+    , radius(20) {
     std::println("{:} creado", name);
     t = "assets/images/" + t;
     texture = LoadTexture(t.c_str());
 }
 
-
 void Horse::render() {
     int text_width = MeasureText(name.c_str(), 8);
 
-    DrawTextureEx(
-        texture,
-        Vector2{position.x - radius, position.y - radius},
-        0,
-        texture.width / 6000.0,
-        WHITE
-    );
-    DrawText(
-        name.c_str(),
-        position.x - text_width / 2.0f,
-        position.y + radius / 2.0f + 10,
-        8,
-        BLACK
-    );
+    DrawTextureEx(texture,
+                  Vector2{ position.x - radius, position.y - radius },
+                  0,
+                  texture.width / 6000.0,
+                  WHITE);
+    DrawText(name.c_str(),
+             position.x - text_width / 2.0f,
+             position.y + radius / 2.0f + 10,
+             8,
+             BLACK);
 }
 
 void Horse::accelerate() {
@@ -38,7 +35,7 @@ void Horse::accelerate() {
     position.y += speed.y;
 }
 
-bool Horse::collide_with_border(Rectangle &b) {
+bool Horse::collide_with_border(Rectangle& b) {
     if (!CheckCollisionCircleRec(position, radius, b)) {
         return false;
     }
@@ -67,7 +64,7 @@ bool Horse::collide_with_border(Rectangle &b) {
     return true;
 }
 
-bool Horse::collide_with_horse(Horse *h) {
+bool Horse::collide_with_horse(Horse* h) {
     Vector2 diff = Vector2Subtract(h->position, position);
     float dist = Vector2Length(diff);
     float min_dist = radius + h->radius;
@@ -82,7 +79,9 @@ bool Horse::collide_with_horse(Horse *h) {
         Vector2 relative_velocity = Vector2Subtract(h->speed, speed);
         float v_along_normal = Vector2DotProduct(relative_velocity, normal);
 
-        if (v_along_normal > 0) { return false; }
+        if (v_along_normal > 0) {
+            return false;
+        }
 
         Vector2 impulse = Vector2Scale(normal, v_along_normal);
 
