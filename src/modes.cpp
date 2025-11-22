@@ -160,7 +160,7 @@ void EditMode::move_border(GameContext &gc, Vector2 mouse) {
         break;
     case GrabbedBorder::RIGHT_UPPER:
         pos_offset = Vector2Subtract(
-            Vector2{gc.map[i_rectangle].x + gc.map[i_rectangle].width, gc.map[i_rectangle].y },
+            Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width, gc.map[i_rectangle].y },
             mouse
         );
         gc.map[i_rectangle].width = gc.map[i_rectangle].width - pos_offset.x;
@@ -178,6 +178,17 @@ void EditMode::move_border(GameContext &gc, Vector2 mouse) {
         gc.map[i_rectangle].width = gc.map[i_rectangle].width - pos_offset.x;
         gc.map[i_rectangle].height = gc.map[i_rectangle].height - pos_offset.y;
         break;
+    case GrabbedBorder::CENTER:
+        pos_offset = Vector2Subtract(
+            Vector2{
+                gc.map[i_rectangle].x + (gc.map[i_rectangle].width / 2.0F),
+                gc.map[i_rectangle].y + (gc.map[i_rectangle].height / 2.0F)
+            },
+            mouse
+        );
+        gc.map[i_rectangle].x -= pos_offset.x;
+        gc.map[i_rectangle].y -= pos_offset.y;
+        break;
     case GrabbedBorder::NONE:
         return;
     }
@@ -187,41 +198,37 @@ void EditMode::move_border(GameContext &gc, Vector2 mouse) {
     }
 }
 
+bool EditMode::check_if_mouse_in_point(Vector2 mouse, Vector2 point) {
+    return (CheckCollisionPointCircle(mouse, point, 5)
+     && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
+     && mouse_in_border == GrabbedBorder::NONE
+     && !mouse_in_uma);
+}
+
 void EditMode::check_if_mouse_in_border(GameContext &gc, Vector2 mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
-        if (CheckCollisionPointCircle(mouse, Vector2{ gc.map[i].x, gc.map[i].y }, 5)
-            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && mouse_in_border == GrabbedBorder::NONE
-            && !mouse_in_uma
-        ) {
+        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x, gc.map[i].y })) {
             mouse_in_border = GrabbedBorder::LEFT_UPPER;
             i_rectangle = i;
         }
 
-        if (CheckCollisionPointCircle(mouse, Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height }, 5)
-            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && mouse_in_border == GrabbedBorder::NONE
-            && !mouse_in_uma
-        ) {
+        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height })) {
             mouse_in_border = GrabbedBorder::LEFT_DOWN;
             i_rectangle = i;
         }
 
-        if (CheckCollisionPointCircle(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y }, 5)
-            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && mouse_in_border == GrabbedBorder::NONE
-            && !mouse_in_uma
-        ) {
+        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y })) {
             mouse_in_border = GrabbedBorder::RIGHT_UPPER;
             i_rectangle = i;
         }
 
-        if (CheckCollisionPointCircle(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y + gc.map[i].height }, 5)
-            && IsMouseButtonDown(MOUSE_LEFT_BUTTON)
-            && mouse_in_border == GrabbedBorder::NONE
-            && !mouse_in_uma
-        ) {
+        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y + gc.map[i].height })) {
             mouse_in_border = GrabbedBorder::RIGHT_DOWN;
+            i_rectangle = i;
+        }
+
+        if (check_if_mouse_in_point(mouse, Vector2{ gc.map[i].x + (gc.map[i].width / 2), gc.map[i].y + (gc.map[i].height / 2) })) {
+            mouse_in_border = GrabbedBorder::CENTER;
             i_rectangle = i;
         }
     }
@@ -266,6 +273,7 @@ void EditMode::render(GameContext &gc) {
         DrawCircle(b.x + b.width, b.y, 5.0F, BLUE);
         DrawCircle(b.x, b.y + b.height, 5.0F, BLUE);
         DrawCircle(b.x + b.width, b.y + b.height, 5.0F, BLUE);
+        DrawCircle(b.x + (b.width / 2), b.y + (b.height / 2), 5.0f, BLUE);
     };
 
     for (const auto &h : gc.horses) { h->render(); }
