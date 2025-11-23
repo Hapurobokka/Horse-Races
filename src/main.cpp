@@ -11,6 +11,7 @@
 
 #include "horse.h"
 #include "modes.h"
+#include "reader.h"
 
 #define WIDTH 800
 #define HEIGHT 450
@@ -69,26 +70,7 @@ int main() {
                 }) |
                 ranges::to<std::vector>();
 
-    gc.map = {
-        Rectangle{ 0, 0, (GetScreenWidth() - 20.0F), 20 },
-        Rectangle{ 0, 20, 20, GetScreenHeight() - 20.0F },
-        Rectangle{
-            0, (GetScreenHeight() - 20.0F), (GetScreenWidth() - 20.0F), 20 },
-        Rectangle{ (GetScreenWidth() - 20.0F),
-                   0,
-                   20,
-                   static_cast<float>(GetScreenHeight()) },
-        Rectangle{ 200, 20, 60, 200 },
-        Rectangle{ 340, 20, 60, 240 },
-        Rectangle{ 440, 20, 60, 40 },
-        Rectangle{ 540, 20, 140, 60 },
-        Rectangle{ 480, 140, 300, 40 },
-        Rectangle{ 20, (GetScreenHeight() - 180.0F), 100, 40 },
-        Rectangle{ 460, (GetScreenHeight() - 180.0F), 240, 40 },
-        Rectangle{ 200, (GetScreenHeight() - 100.0F), 60, 80 },
-        Rectangle{ 340, (GetScreenHeight() - 60.0F), 60, 40 },
-        Rectangle{ 460, (GetScreenHeight() - 60.0F), 240, 40 },
-    };
+    reader::read_map(gc);
 
     InitAudioDevice();
 
@@ -115,7 +97,8 @@ int main() {
         }
     }
 
-    std::println("Modo único liberado");
+    reader::dump_map(gc);
+
     CloseAudioDevice();
     CloseWindow();
     return 0;
