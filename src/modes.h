@@ -3,6 +3,7 @@
 #include "horse.h"
 #include "raylib.h"
 
+#include <memory>
 #include <vector>
 
 // Timer para contar el tiempo.
@@ -13,8 +14,8 @@ private:
 
 public:
 	void start(double lf);
-	bool is_done();
-	double get_elapsed();
+	bool is_done() const;
+	double get_elapsed() const;
 };
 
 struct Goal {
@@ -23,8 +24,8 @@ struct Goal {
 };
 
 struct GameContext {
-	std::vector<Horse *> horses;
-	std::vector<Rectangle *> map;
+	std::vector<std::unique_ptr<Horse>> horses;
+	std::vector<Rectangle> map;
 	Goal goal;
 	Music ost;
 	Sound boop;
@@ -34,10 +35,6 @@ struct GameContext {
 	~GameContext() {
 		UnloadSound(boop);
 		UnloadMusicStream(ost);
-		for (auto h : horses) {
-			delete h;
-			h = nullptr;
-		}
 		UnloadTexture(goal.texture);
 	}
 };
@@ -49,7 +46,7 @@ public:
 
     // Método responsable de manejar la lógica del juego.
     // Desde aquí viene cualquier cambio a otro modo.
-	virtual GameMode *update(GameContext &gc) = 0;
+	virtual std::unique_ptr<GameMode> update(GameContext &gc) = 0;
     // Método responsable de dibujar todo a la pantalla.
 	virtual void render(GameContext &gc) = 0;
 };
@@ -62,11 +59,11 @@ private:
 	bool paused = false;
 	bool race_started = false;
 	bool victory = false;
-	std::string winner{};
+	std::string winner;
 
 public:
-	RaceMode();
-	GameMode *update(GameContext &gc) override;
+	RaceMode() = default;
+	std::unique_ptr<GameMode> update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };
 
@@ -76,8 +73,8 @@ private:
     bool button_edit_pressed = false;
 
 public:
-	MenuMode() {};
-	GameMode* update(GameContext &gc) override;
+	MenuMode() = default;
+	std::unique_ptr<GameMode> update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };
 
@@ -87,23 +84,25 @@ private:
     bool mouse_in_uma = false;
 
     enum class GrabbedBorder {
-        None,
-        LeftUpper,
-        LeftDown,
-        RightUpper,
-        RightDown
+        NONE,
+        LEFT_UPPER,
+        LEFT_DOWN,
+        RIGHT_UPPER,
+        RIGHT_DOWN,
+        CENTER
     };
 
-    GrabbedBorder mouse_in_border = EditMode::GrabbedBorder::None;
+    GrabbedBorder mouse_in_border = EditMode::GrabbedBorder::NONE;
     Horse* selected_uma = nullptr;
-    Rectangle* selected_rectangle = nullptr;
+    int i_rectangle{};
+    bool check_if_mouse_in_point(Vector2 mouse, Vector2 point);
     void check_if_mouse_in_border(GameContext &gc, Vector2 mouse);
     void check_if_mouse_in_horse(GameContext &gc, Vector2 mouse);
-    void move_border(Vector2 mouse);
+    void move_border(GameContext &gc, Vector2 mouse);
     void move_horse(Vector2 mouse);
 
 public:
-	EditMode() {};
-	GameMode* update(GameContext &gc) override;
+	EditMode() = default;
+	std::unique_ptr<GameMode> update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };

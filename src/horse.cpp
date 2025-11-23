@@ -1,36 +1,33 @@
 #include "horse.h"
 
-#include <iostream>
 #include "raylib.h"
 #include "raymath.h"
+#include <print>
+#include <utility>
 
 using std::string;
-using std::cout;
 
-Horse::Horse(string n, string t) : name { n } {
-    cout << name << " creado.\n";
+Horse::Horse(string n, string t)
+    : name{ std::move(n) }
+    , radius(20) {
+    std::println("{:} creado", name);
     t = "assets/images/" + t;
     texture = LoadTexture(t.c_str());
-    radius = 20;
 }
 
-
 void Horse::render() {
-    DrawTextureEx(
-        texture,
-        Vector2{position.x - radius, position.y - radius},
-        0,
-        texture.width / 6000.0,
-        WHITE
-    );
     int text_width = MeasureText(name.c_str(), 8);
-    DrawText(
-        name.c_str(),
-        position.x - text_width / 2.0f,
-        position.y + radius / 2.0f + 10,
-        8,
-        BLACK
-    );
+
+    DrawTextureEx(texture,
+                  Vector2{ position.x - radius, position.y - radius },
+                  0,
+                  texture.width / 6000.0,
+                  WHITE);
+    DrawText(name.c_str(),
+             position.x - text_width / 2.0f,
+             position.y + radius / 2.0f + 10,
+             8,
+             BLACK);
 }
 
 void Horse::accelerate() {
@@ -38,9 +35,10 @@ void Horse::accelerate() {
     position.y += speed.y;
 }
 
-bool Horse::collide_with_border(Rectangle &b) {
-    if (!CheckCollisionCircleRec(position, radius, b))
+bool Horse::collide_with_border(Rectangle& b) {
+    if (!CheckCollisionCircleRec(position, radius, b)) {
         return false;
+    }
 
     int center_x = b.x + b.width / 2;
     int center_y = b.y + b.height / 2;
@@ -50,21 +48,23 @@ bool Horse::collide_with_border(Rectangle &b) {
 
     if (abs(dx / b.width) > abs(dy / b.height)) {
         speed.x *= -1.0;
-        if (dx > 0)
+        if (dx > 0) {
             position.x = b.x + b.width + radius;
-        else
+        } else {
             position.x = b.x - radius;
+        }
     } else {
         speed.y *= -1.0;
-        if (dy > 0)
+        if (dy > 0) {
             position.y = b.y + b.height + radius;
-        else
+        } else {
             position.y = b.y - radius;
+        }
     }
     return true;
 }
 
-bool Horse::collide_with_horse(Horse *h) {
+bool Horse::collide_with_horse(Horse* h) {
     Vector2 diff = Vector2Subtract(h->position, position);
     float dist = Vector2Length(diff);
     float min_dist = radius + h->radius;
@@ -79,7 +79,9 @@ bool Horse::collide_with_horse(Horse *h) {
         Vector2 relative_velocity = Vector2Subtract(h->speed, speed);
         float v_along_normal = Vector2DotProduct(relative_velocity, normal);
 
-        if (v_along_normal > 0) return false;
+        if (v_along_normal > 0) {
+            return false;
+        }
 
         Vector2 impulse = Vector2Scale(normal, v_along_normal);
 
@@ -93,5 +95,6 @@ bool Horse::collide_with_horse(Horse *h) {
 }
 
 Horse::~Horse() {
+    std::println("{:} ha sido liberado", name);
     UnloadTexture(texture);
 }

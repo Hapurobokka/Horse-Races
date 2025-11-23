@@ -37,7 +37,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(raygui)
 
 # Tu ejecutable
-add_executable(${PROJECT_NAME} src/main.cpp src/horse.cpp src/modes.cpp)
+add_executable(${PROJECT_NAME} src/main.cpp src/horse.cpp src/modes.cpp src/reader.cpp)
 
 # IMPORTANTE: Incluir raylib ANTES de linkear
 target_include_directories(${PROJECT_NAME} PRIVATE
