@@ -6,7 +6,6 @@
 
 #include <fstream>
 
-using namespace std;
 using json = nlohmann::json;
 
 void reader::dump_map(GameContext &gc) {
@@ -28,7 +27,7 @@ void reader::read_map(GameContext &gc) {
     f >> j;
     f.close();
 
-    for (int i = 0; i < j["map"].size(); i++) {
+    for (int i = 0; i < (int)j["map"].size(); i++) {
         float x = j["map"][i]["x"].get<float>();
         float y = j["map"][i]["y"].get<float>();
         float width  = j["map"][i]["width"].get<float>();

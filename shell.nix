@@ -5,22 +5,24 @@ mkShell {
     raygui
     raylib
   ];
-  buildInputs = [
+  nativeBuildInputs = [
     clang-tools 
     clang
     cmake
     ffmpeg
     gnumake
+    pkg-config
+    valgrind
+    ninja
+  ];
+  buildInputs = [
     kdePackages.wayland
     kdePackages.wayland-protocols
     libGL
     libffi
     libx11
-    ninja
     libxkbcommon
     mesa
-    pkg-config
-    valgrind
     wayland-scanner
     wayland-utils
     xorg.libXcursor

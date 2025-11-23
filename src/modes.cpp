@@ -1,8 +1,5 @@
 #include "modes.h"
 
-#include <bits/stdc++.h>
-#include <cstdio>
-#include <format>
 #include <memory>
 #include <print>
 
@@ -162,10 +159,8 @@ void EditMode::move_border(GameContext& gc, Vector2 mouse) {
                 Vector2{ gc.map[i_rectangle].x, gc.map[i_rectangle].y }, mouse);
             gc.map[i_rectangle].x = mouse.x;
             gc.map[i_rectangle].y = mouse.y;
-            gc.map[i_rectangle].width =
-                gc.map[i_rectangle].width + pos_offset.x;
-            gc.map[i_rectangle].height =
-                gc.map[i_rectangle].height + pos_offset.y;
+            gc.map[i_rectangle].width += pos_offset.x;
+            gc.map[i_rectangle].height += pos_offset.y;
             break;
         case GrabbedBorder::LEFT_DOWN:
             pos_offset = Vector2Subtract(
@@ -173,20 +168,16 @@ void EditMode::move_border(GameContext& gc, Vector2 mouse) {
                          gc.map[i_rectangle].y + gc.map[i_rectangle].height },
                 mouse);
             gc.map[i_rectangle].x = mouse.x;
-            gc.map[i_rectangle].width =
-                gc.map[i_rectangle].width + pos_offset.x;
-            gc.map[i_rectangle].height =
-                gc.map[i_rectangle].height - pos_offset.y;
+            gc.map[i_rectangle].width += pos_offset.x;
+            gc.map[i_rectangle].height -= pos_offset.y;
             break;
         case GrabbedBorder::RIGHT_UPPER:
             pos_offset = Vector2Subtract(
                 Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width,
                          gc.map[i_rectangle].y },
                 mouse);
-            gc.map[i_rectangle].width =
-                gc.map[i_rectangle].width - pos_offset.x;
-            gc.map[i_rectangle].height =
-                gc.map[i_rectangle].height + pos_offset.y;
+            gc.map[i_rectangle].width -= pos_offset.x;
+            gc.map[i_rectangle].height += pos_offset.y;
             gc.map[i_rectangle].y = mouse.y;
             break;
         case GrabbedBorder::RIGHT_DOWN:
@@ -194,10 +185,8 @@ void EditMode::move_border(GameContext& gc, Vector2 mouse) {
                 Vector2{ gc.map[i_rectangle].x + gc.map[i_rectangle].width,
                          gc.map[i_rectangle].y + gc.map[i_rectangle].height },
                 mouse);
-            gc.map[i_rectangle].width =
-                gc.map[i_rectangle].width - pos_offset.x;
-            gc.map[i_rectangle].height =
-                gc.map[i_rectangle].height - pos_offset.y;
+            gc.map[i_rectangle].width -= pos_offset.x;
+            gc.map[i_rectangle].height -= pos_offset.y;
             break;
         case GrabbedBorder::CENTER:
             pos_offset = Vector2Subtract(
@@ -225,24 +214,25 @@ bool EditMode::check_if_mouse_in_point(Vector2 mouse, Vector2 point) {
 
 void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
+        if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            return;
+        }
+
         if (check_if_mouse_in_point(mouse,
-                                    Vector2{ gc.map[i].x, gc.map[i].y }) &&
-            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                                    Vector2{ gc.map[i].x, gc.map[i].y })) {
             mouse_in_border = GrabbedBorder::LEFT_UPPER;
             i_rectangle = i;
         }
 
         if (check_if_mouse_in_point(
                 mouse,
-                Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height }) &&
-            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                Vector2{ gc.map[i].x, gc.map[i].y + gc.map[i].height })) {
             mouse_in_border = GrabbedBorder::LEFT_DOWN;
             i_rectangle = i;
         }
 
         if (check_if_mouse_in_point(
-                mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y }) &&
-            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                mouse, Vector2{ gc.map[i].x + gc.map[i].width, gc.map[i].y })) {
             mouse_in_border = GrabbedBorder::RIGHT_UPPER;
             i_rectangle = i;
         }
@@ -250,8 +240,7 @@ void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
         if (check_if_mouse_in_point(
                 mouse,
                 Vector2{ gc.map[i].x + gc.map[i].width,
-                         gc.map[i].y + gc.map[i].height }) &&
-            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                         gc.map[i].y + gc.map[i].height })) {
             mouse_in_border = GrabbedBorder::RIGHT_DOWN;
             i_rectangle = i;
         }
@@ -259,8 +248,7 @@ void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
         if (check_if_mouse_in_point(
                 mouse,
                 Vector2{ gc.map[i].x + (gc.map[i].width / 2),
-                         gc.map[i].y + (gc.map[i].height / 2) }) &&
-            IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+                         gc.map[i].y + (gc.map[i].height / 2) })) {
             mouse_in_border = GrabbedBorder::CENTER;
             i_rectangle = i;
         }

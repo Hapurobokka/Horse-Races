@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <memory>
-#include <print>
 #include <random>
 #include <ranges>
 #include <string>
@@ -16,7 +15,10 @@
 #define WIDTH 800
 #define HEIGHT 450
 
-using namespace std;
+using std::string;
+using std::tuple;
+using std::unique_ptr;
+using std::vector;
 
 void randomize_race(GameContext& gc) {
     vector<Vector2> starting_positions = {
@@ -65,10 +67,10 @@ int main() {
         { "GLSP", "gold.png" },         { "SILSUZ", "silsuz.png" }
     };
 
-    gc.horses = p_horses | views::transform([](const auto& t) {
+    gc.horses = p_horses | std::views::transform([](const auto& t) {
                     return make_unique<Horse>(get<0>(t), get<1>(t));
                 }) |
-                ranges::to<std::vector>();
+                std::ranges::to<std::vector>();
 
     reader::read_map(gc);
 
