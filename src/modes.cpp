@@ -1,4 +1,5 @@
 #include "modes.h"
+#include "reader.h"
 
 #include <memory>
 #include <print>
@@ -97,6 +98,12 @@ void RaceMode::render(GameContext& gc) {
     DrawFPS(10, 10);
 }
 
+MenuMode::MenuMode() {
+    file_paths = reader::get_map_list("assets/tables");
+    paths_string = reader::get_maps_string(file_paths);
+    std::println("INFO: Paths cargados: {:}", paths_string);
+}
+
 unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
     if (button_race_pressed) {
         gc.music_t.start(3);
@@ -107,6 +114,20 @@ unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
     if (button_edit_pressed) {
         std::println("INFO: Entering Edit Mode");
         return std::make_unique<EditMode>();
+    }
+
+    if (button_saved_pressed) {
+        reader::dump_map(gc, file_paths[gc.path_selected]);
+        std::println("Mapa {:} guardado", file_paths[gc.path_selected]);
+        button_saved_pressed = false;
+    }
+
+    if (gc.path_selected != gc.prev_selected) {
+        gc.map.clear();
+        reader::read_map(gc, file_paths[gc.path_selected]);
+        std::println("Mapa {:} cargado", file_paths[gc.path_selected]);
+
+        gc.prev_selected = gc.path_selected;
     }
 
     return nullptr;
@@ -134,6 +155,12 @@ void MenuMode::render(GameContext& gc) {
 
     if (GuiButton(Rectangle{ 275, 280, 200, 30 }, "Edit")) {
         button_edit_pressed = true;
+    }
+
+    GuiComboBox(Rectangle{275, 320, 200, 30}, paths_string.c_str(), &gc.path_selected);
+
+    if (GuiButton(Rectangle{ 275, 360, 200, 30 }, "Save")) {
+        button_saved_pressed = true;
     }
 
     DrawText("Press start to start", 250, 200, 30, GRAY);

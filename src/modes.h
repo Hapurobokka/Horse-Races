@@ -32,6 +32,9 @@ struct GameContext {
 
 	Timer music_t = Timer{};
 
+    int path_selected = 0;
+    int prev_selected = 1;
+
 	~GameContext() {
 		UnloadSound(boop);
 		UnloadMusicStream(ost);
@@ -71,9 +74,13 @@ class MenuMode : public GameMode {
 private:
 	bool button_race_pressed = false;
     bool button_edit_pressed = false;
+    bool button_saved_pressed = false;
+
+    std::string paths_string;
+    std::vector<std::string> file_paths; 
 
 public:
-	MenuMode() = default;
+	MenuMode();
 	std::unique_ptr<GameMode> update(GameContext &gc) override;
 	void render(GameContext &gc) override;
 };

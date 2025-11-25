@@ -72,8 +72,6 @@ int main() {
                 }) |
                 std::ranges::to<std::vector>();
 
-    reader::read_map(gc);
-
     InitAudioDevice();
 
     gc.goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
@@ -98,8 +96,6 @@ int main() {
             current_state.swap(next_state);
         }
     }
-
-    reader::dump_map(gc);
 
     CloseAudioDevice();
     CloseWindow();
