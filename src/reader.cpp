@@ -12,11 +12,11 @@
 
 using json = nlohmann::json;
 using std::string;
-using std::views::transform;
 using std::vector;
+using std::views::transform;
 namespace fs = std::filesystem;
 
-void reader::dump_map(GameContext& gc, const string &path) {
+void reader::dump_map(GameContext& gc, const string& path) {
     std::ofstream f(path, std::ios::out | std::ios::trunc);
     json j;
     for (int i = 0; i < (int)gc.map.size(); i++) {
@@ -27,16 +27,20 @@ void reader::dump_map(GameContext& gc, const string &path) {
     }
 
     int hi = 0;
-    for (const auto &h: gc.horses) {
+    for (const auto& h : gc.horses) {
         j["horse"][hi]["x"] = h->get_position().x;
         j["horse"][hi]["y"] = h->get_position().y;
         hi++;
     }
+
+    j["goal"]["x"] = gc.goal.position.x;
+    j["goal"]["y"] = gc.goal.position.y;
+
     f << j.dump();
     f.close();
 }
 
-void reader::read_map(GameContext& gc, const string &path) {
+void reader::read_map(GameContext& gc, const string& path) {
     json j;
     std::ifstream f(path);
     f >> j;
@@ -52,27 +56,31 @@ void reader::read_map(GameContext& gc, const string &path) {
     }
 
     int hi = 0;
-    for (const auto &h: gc.horses) {
+    for (const auto& h : gc.horses) {
         float x = j["horse"][hi]["x"].get<float>();
         float y = j["horse"][hi]["y"].get<float>();
-        h->set_position(Vector2{x, y});
+        h->set_position(Vector2{ x, y });
         hi++;
     }
+
+    float x = j["goal"]["x"].get<float>();
+    float y = j["goal"]["y"].get<float>();
+    gc.goal.position = Vector2{ x, y };
 }
 
-vector<string> reader::get_map_list(const std::string &map_route) {
-    return fs::directory_iterator(map_route) 
-    | transform([](const fs::directory_entry &entry) { return entry.path().string(); }) 
-    | std::views::filter([](const string &path) { return path.ends_with(".json"); })
-    | std::ranges::to<vector>();
+vector<string> reader::get_map_list(const std::string& map_route) {
+    return fs::directory_iterator(map_route) |
+           transform([](const fs::directory_entry& entry) {
+               return entry.path().string();
+           }) |
+           std::views::filter(
+               [](const string& path) { return path.ends_with(".json"); }) |
+           std::ranges::to<vector>();
 }
 
 string reader::get_maps_string(const vector<string>& map_route) {
     return std::ranges::fold_left(
-        map_route,
-        string{},
-        [](const string& acc, const string& path) {
+        map_route, string{}, [](const string& acc, const string& path) {
             return acc.empty() ? path : acc + ";" + path;
-        }
-    );
+        });
 }

@@ -3,6 +3,9 @@
 
 #include <memory>
 #include <print>
+#include <ranges>
+#include <tuple>
+#include <vector>
 
 #include "raylib.h"
 #include "raymath.h"
@@ -10,7 +13,33 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+using std::string;
+using std::tuple;
 using std::unique_ptr;
+using std::vector;
+
+GameContext::GameContext() {
+    boop = LoadSound("assets/music/collide.wav");
+    ost = LoadMusicStream("assets/music/versus.mp3");
+
+    vector<tuple<string, string>> p_horses = {
+        { "SPCWK", "spcwk.png" },       { "MAMBO", "mambo.png" },
+        { "MJMQ", "mjmq.png" },         { "TOTE", "teto.png" },
+        { "BAKUSHIN", "bakushin.png" }, { "CHIYO", "chiyono.png" },
+        { "GLSP", "gold.png" },         { "SILSUZ", "silsuz.png" }
+    };
+
+    horses = p_horses | std::views::transform([](const auto& t) {
+                 return make_unique<Horse>(get<0>(t), get<1>(t));
+             }) |
+             std::ranges::to<std::vector>();
+    goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
+                 .texture = LoadTexture("assets/images/carrot.png") };
+
+    file_paths = reader::get_map_list("assets/tables");
+    paths_string = reader::get_maps_string(file_paths);
+    std::println("INFO: Paths cargados: {:}", paths_string);
+}
 
 void Timer::start(double lf) {
     start_time = GetTime();
@@ -98,11 +127,7 @@ void RaceMode::render(GameContext& gc) {
     DrawFPS(10, 10);
 }
 
-MenuMode::MenuMode() {
-    file_paths = reader::get_map_list("assets/tables");
-    paths_string = reader::get_maps_string(file_paths);
-    std::println("INFO: Paths cargados: {:}", paths_string);
-}
+MenuMode::MenuMode() {}
 
 unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
     if (button_race_pressed) {
@@ -117,15 +142,15 @@ unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
     }
 
     if (button_saved_pressed) {
-        reader::dump_map(gc, file_paths[gc.path_selected]);
-        std::println("Mapa {:} guardado", file_paths[gc.path_selected]);
+        reader::dump_map(gc, gc.file_paths[gc.path_selected]);
+        std::println("Mapa {:} guardado", gc.file_paths[gc.path_selected]);
         button_saved_pressed = false;
     }
 
     if (gc.path_selected != gc.prev_selected) {
         gc.map.clear();
-        reader::read_map(gc, file_paths[gc.path_selected]);
-        std::println("Mapa {:} cargado", file_paths[gc.path_selected]);
+        reader::read_map(gc, gc.file_paths[gc.path_selected]);
+        std::println("Mapa {:} cargado", gc.file_paths[gc.path_selected]);
 
         gc.prev_selected = gc.path_selected;
     }
@@ -157,7 +182,9 @@ void MenuMode::render(GameContext& gc) {
         button_edit_pressed = true;
     }
 
-    GuiComboBox(Rectangle{275, 320, 200, 30}, paths_string.c_str(), &gc.path_selected);
+    GuiComboBox(Rectangle{ 275, 320, 200, 30 },
+                gc.paths_string.c_str(),
+                &gc.path_selected);
 
     if (GuiButton(Rectangle{ 275, 360, 200, 30 }, "Save")) {
         button_saved_pressed = true;
@@ -177,7 +204,7 @@ void EditMode::move_horse(Vector2 mouse) {
     }
 }
 
-void EditMode::move_border(GameContext& gc, Vector2 &mouse) {
+void EditMode::move_border(GameContext& gc, Vector2& mouse) {
     Vector2 pos_offset{};
 
     switch (mouse_in_border) {
@@ -234,12 +261,12 @@ void EditMode::move_border(GameContext& gc, Vector2 &mouse) {
     }
 }
 
-bool EditMode::check_if_mouse_in_point(Vector2 &mouse, Vector2 point) {
+bool EditMode::check_if_mouse_in_point(Vector2& mouse, Vector2 point) {
     return (CheckCollisionPointCircle(mouse, point, 5) &&
             mouse_in_border == GrabbedBorder::NONE && !mouse_in_uma);
 }
 
-void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 &mouse) {
+void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2& mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
         if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             return;
@@ -282,7 +309,7 @@ void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 &mouse) {
     }
 }
 
-void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 &mouse) {
+void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2& mouse) {
     for (const auto& h : gc.horses) {
         if (CheckCollisionPointCircle(
                 mouse, h->get_position(), h->get_radius()) &&
@@ -295,7 +322,7 @@ void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 &mouse) {
     }
 }
 
-void EditMode::delete_border(GameContext &gc,Vector2 mouse) {
+void EditMode::delete_border(GameContext& gc, Vector2 mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
         if (check_if_mouse_in_point(
                 mouse,
@@ -323,10 +350,9 @@ unique_ptr<GameMode> EditMode::update(GameContext& gc) {
                                        100 });
     }
 
-    if (CheckCollisionPointCircle(mouse, gc.goal.position, 10) 
-            && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)
-            && !mouse_in_uma
-            && mouse_in_border == GrabbedBorder::NONE) {
+    if (CheckCollisionPointCircle(mouse, gc.goal.position, 10) &&
+        IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !mouse_in_uma &&
+        mouse_in_border == GrabbedBorder::NONE) {
         mouse_in_goal = true;
     }
 

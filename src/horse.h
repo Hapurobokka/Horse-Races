@@ -4,20 +4,21 @@
 #include <string>
 
 class Horse {
-private:
+  private:
     std::string name;
     Texture texture;
     Vector2 position;
     Vector2 speed;
     int radius;
-public:
+
+  public:
     Horse(std::string n, std::string t);
     ~Horse();
 
     void render();
     void accelerate();
-    bool collide_with_border(Rectangle &b);
-    bool collide_with_horse(Horse *h);
+    bool collide_with_border(Rectangle& b);
+    bool collide_with_horse(Horse* h);
 
     std::string get_name() { return name; }
     Vector2 get_position() { return position; }

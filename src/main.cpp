@@ -1,16 +1,9 @@
 #include "raylib.h"
-#include <algorithm>
+
 #include <cstdlib>
 #include <memory>
-#include <random>
-#include <ranges>
-#include <string>
-#include <tuple>
-#include <vector>
 
-#include "horse.h"
 #include "modes.h"
-#include "reader.h"
 
 #define WIDTH 800
 #define HEIGHT 450
@@ -44,26 +37,7 @@ int main() {
     // Creamos un "contexto global".
     GameContext gc{};
 
-    gc.boop = LoadSound("assets/music/collide.wav");
-    gc.ost = LoadMusicStream("assets/music/versus.mp3");
-
-    vector<tuple<string, string>> p_horses = {
-        { "SPCWK", "spcwk.png" },       { "MAMBO", "mambo.png" },
-        { "MJMQ", "mjmq.png" },         { "TOTE", "teto.png" },
-        { "BAKUSHIN", "bakushin.png" }, { "CHIYO", "chiyono.png" },
-        { "GLSP", "gold.png" },         { "SILSUZ", "silsuz.png" }
-    };
-
-    gc.horses = p_horses | std::views::transform([](const auto& t) {
-                    return make_unique<Horse>(get<0>(t), get<1>(t));
-                }) |
-                std::ranges::to<std::vector>();
-
     InitAudioDevice();
-
-    gc.goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
-                    .texture = LoadTexture("assets/images/carrot.png") };
-
     randomize_speed(gc);
 
     // Creamos el primer modo de todos
