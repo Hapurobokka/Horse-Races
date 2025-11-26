@@ -20,17 +20,8 @@ using std::tuple;
 using std::unique_ptr;
 using std::vector;
 
-void randomize_race(GameContext& gc) {
-    vector<Vector2> starting_positions = {
-        Vector2{ 80, 50 },   Vector2{ 140, 50 },  Vector2{ 80, 100 },
-        Vector2{ 140, 100 }, Vector2{ 80, 150 },  Vector2{ 140, 150 },
-        Vector2{ 80, 200 },  Vector2{ 140, 200 },
-    };
-
+void randomize_speed(GameContext& gc) {
     srand(time(nullptr));
-    std::random_device rd;
-    std::default_random_engine rng(rd());
-    shuffle(starting_positions.begin(), starting_positions.end(), rng);
 
     vector<Vector2> possible_speeds = {
         Vector2{ 2.0, 1.0 },   Vector2{ -2.0, 1.0 },  Vector2{ 2.0, -1.0 },
@@ -40,11 +31,7 @@ void randomize_race(GameContext& gc) {
     };
 
     for (const auto& h : gc.horses) {
-        Vector2 new_pos = starting_positions.back();
-        starting_positions.pop_back();
         int random_pos = rand() % possible_speeds.size();
-
-        h->set_position(new_pos);
         h->set_speed(possible_speeds[random_pos]);
     }
 }
@@ -77,7 +64,7 @@ int main() {
     gc.goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
                     .texture = LoadTexture("assets/images/carrot.png") };
 
-    randomize_race(gc);
+    randomize_speed(gc);
 
     // Creamos el primer modo de todos
     unique_ptr<GameMode> current_state(new MenuMode());

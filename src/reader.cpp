@@ -25,6 +25,13 @@ void reader::dump_map(GameContext& gc, const string &path) {
         j["map"][i]["width"] = gc.map[i].width;
         j["map"][i]["height"] = gc.map[i].height;
     }
+
+    int hi = 0;
+    for (const auto &h: gc.horses) {
+        j["horse"][hi]["x"] = h->get_position().x;
+        j["horse"][hi]["y"] = h->get_position().y;
+        hi++;
+    }
     f << j.dump();
     f.close();
 }
@@ -42,6 +49,14 @@ void reader::read_map(GameContext& gc, const string &path) {
         float height = j["map"][i]["height"].get<float>();
 
         gc.map.emplace_back(Rectangle{ x, y, width, height });
+    }
+
+    int hi = 0;
+    for (const auto &h: gc.horses) {
+        float x = j["horse"][hi]["x"].get<float>();
+        float y = j["horse"][hi]["y"].get<float>();
+        h->set_position(Vector2{x, y});
+        hi++;
     }
 }
 
