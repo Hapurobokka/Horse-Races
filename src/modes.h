@@ -89,6 +89,7 @@ class EditMode : public GameMode {
 private:
     bool back_button_pressed = false;
     bool mouse_in_uma = false;
+    bool mouse_in_goal = false;
 
     enum class GrabbedBorder {
         NONE,
@@ -102,11 +103,13 @@ private:
     GrabbedBorder mouse_in_border = EditMode::GrabbedBorder::NONE;
     Horse* selected_uma = nullptr;
     int i_rectangle{};
-    bool check_if_mouse_in_point(Vector2 mouse, Vector2 point);
-    void check_if_mouse_in_border(GameContext &gc, Vector2 mouse);
-    void check_if_mouse_in_horse(GameContext &gc, Vector2 mouse);
-    void move_border(GameContext &gc, Vector2 mouse);
+
+    bool check_if_mouse_in_point(Vector2 &mouse, Vector2 point);
+    void check_if_mouse_in_border(GameContext &gc, Vector2 &mouse);
+    void check_if_mouse_in_horse(GameContext &gc, Vector2 &mouse);
+    void move_border(GameContext &gc, Vector2 &mouse);
     void move_horse(Vector2 mouse);
+    void delete_border(GameContext &gc,Vector2 mouse);
 
 public:
 	EditMode() = default;

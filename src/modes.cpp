@@ -177,7 +177,7 @@ void EditMode::move_horse(Vector2 mouse) {
     }
 }
 
-void EditMode::move_border(GameContext& gc, Vector2 mouse) {
+void EditMode::move_border(GameContext& gc, Vector2 &mouse) {
     Vector2 pos_offset{};
 
     switch (mouse_in_border) {
@@ -234,12 +234,12 @@ void EditMode::move_border(GameContext& gc, Vector2 mouse) {
     }
 }
 
-bool EditMode::check_if_mouse_in_point(Vector2 mouse, Vector2 point) {
+bool EditMode::check_if_mouse_in_point(Vector2 &mouse, Vector2 point) {
     return (CheckCollisionPointCircle(mouse, point, 5) &&
             mouse_in_border == GrabbedBorder::NONE && !mouse_in_uma);
 }
 
-void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
+void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 &mouse) {
     for (int i = 0; i < (int)gc.map.size(); i++) {
         if (!IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             return;
@@ -282,7 +282,7 @@ void EditMode::check_if_mouse_in_border(GameContext& gc, Vector2 mouse) {
     }
 }
 
-void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 mouse) {
+void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 &mouse) {
     for (const auto& h : gc.horses) {
         if (CheckCollisionPointCircle(
                 mouse, h->get_position(), h->get_radius()) &&
@@ -291,6 +291,19 @@ void EditMode::check_if_mouse_in_horse(GameContext& gc, Vector2 mouse) {
             std::println("Haz hecho click en {:}", h->get_name());
             mouse_in_uma = true;
             selected_uma = h.get();
+        }
+    }
+}
+
+void EditMode::delete_border(GameContext &gc,Vector2 mouse) {
+    for (int i = 0; i < (int)gc.map.size(); i++) {
+        if (check_if_mouse_in_point(
+                mouse,
+                Vector2{ gc.map[i].x + (gc.map[i].width / 2),
+                         gc.map[i].y + (gc.map[i].height / 2) }) &&
+            IsKeyPressed(KEY_D)) {
+            std::println("Rectángulo {:} listo para ser borrado", i);
+            gc.map.erase(gc.map.begin() + i);
         }
     }
 }
@@ -310,16 +323,22 @@ unique_ptr<GameMode> EditMode::update(GameContext& gc) {
                                        100 });
     }
 
-    for (int i = 0; i < (int)gc.map.size(); i++) {
-        if (check_if_mouse_in_point(
-                mouse,
-                Vector2{ gc.map[i].x + (gc.map[i].width / 2),
-                         gc.map[i].y + (gc.map[i].height / 2) }) &&
-            IsKeyPressed(KEY_D)) {
-            std::println("Rectángulo {:} listo para ser borrado", i);
-            gc.map.erase(gc.map.begin() + i);
+    if (CheckCollisionPointCircle(mouse, gc.goal.position, 10) 
+            && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)
+            && !mouse_in_uma
+            && mouse_in_border == GrabbedBorder::NONE) {
+        mouse_in_goal = true;
+    }
+
+    if (mouse_in_goal) {
+        gc.goal.position = mouse;
+
+        if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+            mouse_in_goal = false;
         }
     }
+
+    delete_border(gc, mouse);
 
     check_if_mouse_in_horse(gc, mouse);
     check_if_mouse_in_border(gc, mouse);
