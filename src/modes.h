@@ -28,11 +28,6 @@ class GameContext {
     std::vector<std::unique_ptr<Horse>> horses;
     std::vector<Rectangle> map;
     Goal goal;
-    Music ost;
-    Sound boop;
-
-    Timer music_t = Timer{};
-
     int path_selected = 0;
     int prev_selected = 1;
 
@@ -42,8 +37,6 @@ class GameContext {
     GameContext();
 
     ~GameContext() {
-        UnloadSound(boop);
-        UnloadMusicStream(ost);
         UnloadTexture(goal.texture);
     }
 };
@@ -68,10 +61,19 @@ class RaceMode : public GameMode {
     bool paused = false;
     bool race_started = false;
     bool victory = false;
+    bool race_music = false;
     std::string winner;
+    Music ost;
+    Sound boop;
+
+    Timer music_t = Timer{};
 
   public:
-    RaceMode() = default;
+    RaceMode();
+    ~RaceMode() {
+        UnloadSound(boop);
+        UnloadMusicStream(ost);
+    }
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };
@@ -83,7 +85,7 @@ class MenuMode : public GameMode {
     bool button_saved_pressed = false;
 
   public:
-    MenuMode();
+    MenuMode() = default;
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };

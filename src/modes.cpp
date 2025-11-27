@@ -19,9 +19,6 @@ using std::unique_ptr;
 using std::vector;
 
 GameContext::GameContext() {
-    boop = LoadSound("assets/music/collide.wav");
-    ost = LoadMusicStream("assets/music/versus.mp3");
-
     vector<tuple<string, string>> p_horses = {
         { "SPCWK", "spcwk.png" },       { "MAMBO", "mambo.png" },
         { "MJMQ", "mjmq.png" },         { "TOTE", "teto.png" },
@@ -54,15 +51,22 @@ double Timer::get_elapsed() const {
     return GetTime() - start_time;
 }
 
-unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
-    UpdateMusicStream(gc.ost);
-    if (gc.music_t.is_done() && !race_started) {
+RaceMode::RaceMode() {
+    boop = LoadSound("assets/music/collide.wav");
+    SetSoundVolume(boop, 0.3);
+    ost = LoadMusicStream("assets/music/versus.mp3");
+    music_t.start(3);
+}
 
+unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
+    UpdateMusicStream(ost);
+    if (music_t.is_done() && !race_started) {
         race_started = true;
         go_label.start(3);
 
-        if (!IsMusicStreamPlaying(gc.ost)) {
-            PlayMusicStream(gc.ost);
+        if (!IsMusicStreamPlaying(ost)) {
+            PlayMusicStream(ost);
+            race_music = true;
         }
     }
 
@@ -75,12 +79,12 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
             h->accelerate();
             for (auto b : gc.map) {
                 if (h->collide_with_border(b)) {
-                    PlaySound(gc.boop);
+                    PlaySound(boop);
                 }
             }
             for (const auto& h2 : gc.horses) {
                 if (h->collide_with_horse(h2.get())) {
-                    PlaySound(gc.boop);
+                    PlaySound(boop);
                 }
             }
 
@@ -89,6 +93,16 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
                 victory = true;
                 winner = h->get_name();
             }
+        }
+    }
+
+    if (victory && race_music) {
+        if (IsMusicStreamPlaying(ost)) { StopMusicStream(ost); }
+        UnloadMusicStream(ost);
+        race_music = false;
+        ost = LoadMusicStream("assets/music/victory.mp3");
+        if (!IsMusicStreamPlaying(ost)) {
+            PlayMusicStream(ost);
         }
     }
 
@@ -127,11 +141,8 @@ void RaceMode::render(GameContext& gc) {
     DrawFPS(10, 10);
 }
 
-MenuMode::MenuMode() {}
-
 unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
     if (button_race_pressed) {
-        gc.music_t.start(3);
         std::println("INFO: Entering Race Mode");
         return std::make_unique<RaceMode>();
     }

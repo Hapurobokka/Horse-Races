@@ -50,7 +50,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
 # Agregar flags de compilación para evitar warnings
 if(NOT MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -lasound)
 endif()
 
 # En Windows, hacer ejecutable estático
