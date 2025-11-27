@@ -1,10 +1,6 @@
 { pkgs ? import <nixpkgs> {} }:
 with pkgs;
-mkShell {
-  inputsFrom = [
-    raygui
-    raylib
-  ];
+mkShell rec {
   nativeBuildInputs = [
     clang-tools 
     clang
@@ -16,21 +12,18 @@ mkShell {
     ninja
   ];
   buildInputs = [
-    kdePackages.wayland
-    kdePackages.wayland-protocols
+    alsa-lib
     libGL
     libffi
     libx11
-    libxkbcommon
     mesa
-    wayland-scanner
-    wayland-utils
     xorg.libXcursor
     xorg.libXi
     xorg.libXinerama
     xorg.libXrandr
     xorg.xinput
-  ];
+  ] ++ raylib.buildInputs;
+  LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
   shellHook = ''
     export CPATH="${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}:${stdenv.cc.cc}/include/c++/${stdenv.cc.cc.version}/x86_64-unknown-linux-gnu:${glibc.dev}/include"
     export CPLUS_INCLUDE_PATH="$CPATH"

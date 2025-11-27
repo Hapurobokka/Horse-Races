@@ -20,6 +20,7 @@ using std::vector;
 
 GameContext::GameContext() {
     boop = LoadSound("assets/music/collide.wav");
+    SetSoundVolume(boop, 0.3);
     ost = LoadMusicStream("assets/music/versus.mp3");
 
     vector<tuple<string, string>> p_horses = {
@@ -57,7 +58,6 @@ double Timer::get_elapsed() const {
 unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
     UpdateMusicStream(gc.ost);
     if (gc.music_t.is_done() && !race_started) {
-
         race_started = true;
         go_label.start(3);
 
