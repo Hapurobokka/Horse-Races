@@ -8,3 +8,5 @@ game
 old/
 pyproject.toml
 assets/tables/*
+.vscode/c_cpp_properties.json
+.vscode/c_cpp_properties.json

@@ -35,9 +35,9 @@ int main() {
     SetTargetFPS(60);
 
     // Creamos un "contexto global".
-    GameContext gc{};
 
     InitAudioDevice();
+    GameContext gc{};
     randomize_speed(gc);
 
     // Creamos el primer modo de todos
