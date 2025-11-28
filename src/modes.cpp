@@ -121,6 +121,11 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
         }
     }
 
+    if (button_back_pressed) {
+        gc.restart = true;
+        return std::make_unique<MenuMode>(gc);
+    }
+
     return nullptr;
 }
 
@@ -148,12 +153,28 @@ void RaceMode::render(GameContext& gc) {
     }
     if (paused) {
         DrawText("Paused", 350, 200, 30, GRAY);
+
+        if (GuiButton(Rectangle{30, 10, 20, 20}, "<-")) {
+            button_back_pressed = true;
+        }
     }
     if (victory) {
         DrawText(
             TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
+
+        if (GuiButton(Rectangle{30, 10, 20, 20}, "<-")) {
+            button_back_pressed = true;
+        }
     }
     DrawFPS(10, 10);
+}
+
+MenuMode::MenuMode(GameContext &gc) {
+    if (gc.restart) {
+        gc.map.clear();
+        reader::read_map(gc, gc.file_paths[gc.path_selected]);
+        gc.restart = false;
+    }
 }
 
 unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
@@ -378,7 +399,7 @@ unique_ptr<GameMode> EditMode::update(GameContext& gc) {
 
     if (back_button_pressed) {
         std::println("INFO: Entering Menu Mode");
-        return std::make_unique<MenuMode>();
+        return std::make_unique<MenuMode>(gc);
     }
 
     if (IsKeyPressed(KEY_A)) {
@@ -486,7 +507,7 @@ PictureMode::PictureMode(GameContext& gc) {
 std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
     UpdateMusicStream(gc.menu_song);
     if (button_back_pressed) {
-        return std::make_unique<MenuMode>();
+        return std::make_unique<MenuMode>(gc);
     }
 
     for (const auto& b : cboxes) {

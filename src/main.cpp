@@ -41,7 +41,7 @@ int main() {
     randomize_speed(gc);
 
     // Creamos el primer modo de todos
-    unique_ptr<GameMode> current_state(new MenuMode());
+    unique_ptr<GameMode> current_state(new MenuMode(gc));
 
     while (!WindowShouldClose()) {
         // El método update puede devolver un nuevo modo.

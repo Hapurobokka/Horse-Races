@@ -32,6 +32,8 @@ class GameContext {
     int path_selected = 0;
     int prev_selected = 1;
 
+    bool restart = false;
+
     std::string paths_string;
     std::vector<std::string> file_paths;
 
@@ -62,10 +64,13 @@ class RaceMode : public GameMode {
     // Idealmente cualquier estado que necesite tu modo entre bucles y no
     // necesita estar disponible para otros modos debería guardarse aquí.
     Timer go_label{};
+
+    bool button_back_pressed = false;
     bool paused = false;
+    bool race_music = false;
     bool race_started = false;
     bool victory = false;
-    bool race_music = false;
+
     std::string winner;
     Music ost;
     Sound boop;
@@ -90,7 +95,7 @@ class MenuMode : public GameMode {
     bool button_picture_pressed = false;
 
   public:
-    MenuMode() = default;
+    MenuMode(GameContext &gc);
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };
