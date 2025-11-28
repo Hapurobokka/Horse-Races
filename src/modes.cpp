@@ -449,7 +449,7 @@ std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
     return nullptr;
 }
 
-void PictureMode::render(GameContext& gc) {
+void PictureMode::render([[maybe_unused]] GameContext& gc) {
     ClearBackground(RAYWHITE);
 
     if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
