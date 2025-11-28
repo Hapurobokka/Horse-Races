@@ -92,12 +92,12 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
             h->accelerate();
             for (auto b : gc.map) {
                 if (h->collide_with_border(b)) {
-                    PlaySound(boop);
+                    gc.soundQueue.push(boop);
                 }
             }
             for (const auto& h2 : gc.horses) {
                 if (h->collide_with_horse(h2.get())) {
-                    PlaySound(boop);
+                    gc.soundQueue.push(boop);
                 }
             }
 
@@ -124,6 +124,12 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
     if (button_back_pressed) {
         gc.restart = true;
         return std::make_unique<MenuMode>(gc);
+    }
+
+    while (!gc.soundQueue.empty()) {
+        Sound s = gc.soundQueue.front();
+        gc.soundQueue.pop();
+        PlaySound(s);
     }
 
     return nullptr;
