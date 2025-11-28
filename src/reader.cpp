@@ -5,9 +5,9 @@
 #include "raylib.h"
 
 #include <algorithm>
-#include <filesystem>
 #include <fstream>
 #include <ranges>
+#include <string>
 #include <vector>
 
 using json = nlohmann::json;
@@ -73,4 +73,12 @@ string reader::get_paths_string(const vector<string>& map_route) {
         map_route, string{}, [](const string& acc, const string& path) {
             return acc.empty() ? path : acc + ";" + path;
         });
+}
+
+string reader::extract_name(string path) {
+    string del = "assets/images/";
+    path.erase(0, del.size());
+    return path.substr(0, path.find('.')) |
+           std::views::transform([](const char& c) { return toupper(c); }) |
+           std::ranges::to<string>();
 }

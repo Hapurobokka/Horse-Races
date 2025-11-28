@@ -434,6 +434,24 @@ void EditMode::render(GameContext& gc) {
                   WHITE);
 }
 
+SmartComboBox::SmartComboBox(Rectangle pos, int init_num, Horse* h)
+    : position{pos}
+    , current_number{init_num}
+    , prev_number{0}
+    , horse{h} {}
+
+void SmartComboBox::check_selection(std::vector<std::string>& texture_paths) {
+    if (current_number != prev_number) {
+        horse->swap_texture(texture_paths[current_number]);
+        horse->set_name(reader::extract_name(texture_paths[current_number]));
+        prev_number = current_number;
+    }
+}
+
+void SmartComboBox::render(std::string& texture_options) {
+    GuiComboBox(position, texture_options.c_str(), &current_number);
+}
+
 PictureMode::PictureMode(GameContext& gc) {
     std::println("Empezando constructor de PictureMode");
     for (int i = 0; i < (int)gc.horses.size() - 4; i++) {

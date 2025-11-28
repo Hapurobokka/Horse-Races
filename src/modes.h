@@ -5,7 +5,6 @@
 #include "raylib.h"
 
 #include <memory>
-#include <print>
 #include <vector>
 
 // Timer para contar el tiempo.
@@ -129,29 +128,17 @@ class EditMode : public GameMode {
 };
 
 class SmartComboBox {
-  private:
+private:
     Rectangle position;
     int current_number;
     int prev_number;
     Horse* horse;
 
-  public:
-    SmartComboBox(Rectangle pos, int init_num, Horse* h)
-        : position{ pos }
-        , current_number{ init_num }
-        , prev_number{ 0 }
-        , horse{ h } {}
-
-    void check_selection(std::vector<std::string>& texture_paths) {
-        if (current_number != prev_number) {
-            horse->swap_texture(texture_paths[current_number]);
-            prev_number = current_number;
-        }
-    }
-
-    void render(std::string& texture_options) {
-        GuiComboBox(position, texture_options.c_str(), &current_number);
-    }
+public:
+    SmartComboBox(Rectangle pos, int init_num, Horse* h);
+    
+    void check_selection(std::vector<std::string>& texture_paths);
+    void render(std::string& texture_options);
 };
 
 class PictureMode : public GameMode {
