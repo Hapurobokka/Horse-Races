@@ -13,7 +13,7 @@ class Horse {
     int radius;
 
   public:
-    Horse(std::string n, std::string t);
+    Horse(std::string n, const std::string &t);
     ~Horse();
 
     void render();

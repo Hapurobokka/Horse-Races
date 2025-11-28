@@ -7,12 +7,10 @@
 
 using std::string;
 
-Horse::Horse(string n, string t)
+Horse::Horse(string n, const string &t)
     : name{ std::move(n) }
+    , texture(LoadTexture(t.c_str()))
     , radius(20) {
-    std::println("{:} creado", name);
-    t = "assets/images/" + t;
-    texture = LoadTexture(t.c_str());
 }
 
 void Horse::render() {

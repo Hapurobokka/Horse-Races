@@ -19,17 +19,22 @@ using std::unique_ptr;
 using std::vector;
 
 GameContext::GameContext() {
-    vector<tuple<string, string>> p_horses = {
-        { "SPCWK", "spcwk.png" },       { "MAMBO", "mambo.png" },
-        { "MJMQ", "mjmq.png" },         { "TOTE", "teto.png" },
-        { "BAKUSHIN", "bakushin.png" }, { "CHIYO", "chiyono.png" },
-        { "GLSP", "gold.png" },         { "SILSUZ", "silsuz.png" }
-    };
+    auto paths = reader::get_path_list("assets/images",
+                                       [](const string& path) {
+                                           return path.ends_with(".png");
+                                       }) |
+                 std::views::take(8) | std::ranges::to<vector>();
 
-    horses = p_horses | std::views::transform([](const auto& t) {
-                 return make_unique<Horse>(get<0>(t), get<1>(t));
+    auto names = paths | std::views::transform([](const string& path) {
+                     return reader::extract_name(path);
+                 });
+
+    horses = std::views::zip(names, paths) |
+             std::views::transform([](const auto& p_horse) {
+                 return std::make_unique<Horse>(std::get<0>(p_horse),
+                                                std::get<1>(p_horse));
              }) |
-             std::ranges::to<std::vector>();
+             std::ranges::to<vector>();
 
     goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
                  .texture = LoadTexture("assets/images/carrot.png") };
@@ -435,10 +440,10 @@ void EditMode::render(GameContext& gc) {
 }
 
 SmartComboBox::SmartComboBox(Rectangle pos, int init_num, Horse* h)
-    : position{pos}
-    , current_number{init_num}
-    , prev_number{0}
-    , horse{h} {}
+    : position{ pos }
+    , current_number{ init_num }
+    , prev_number{ 0 }
+    , horse{ h } {}
 
 void SmartComboBox::check_selection(std::vector<std::string>& texture_paths) {
     if (current_number != prev_number) {
@@ -465,13 +470,15 @@ PictureMode::PictureMode(GameContext& gc) {
         cboxes.emplace_back(std::make_unique<SmartComboBox>(
             Rectangle{ static_cast<float>(86 + (GetScreenWidth() / 2.0)),
                        static_cast<float>(50 + (100.0 * (i - 4))),
-                       200, 25 },
+                       200,
+                       25 },
             i,
-            gc.horses[i].get() ));
+            gc.horses[i].get()));
     }
-    texture_paths = reader::get_path_list("assets/images", [](const string& path) {
-        return path.ends_with(".png");
-    });
+    texture_paths =
+        reader::get_path_list("assets/images", [](const string& path) {
+            return path.ends_with(".png");
+        });
     texture_options = reader::get_paths_string(texture_paths);
     std::println("Constructor de PictureMode finalizado");
 }
@@ -482,7 +489,7 @@ std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
         return std::make_unique<MenuMode>();
     }
 
-    for (const auto &b : cboxes) {
+    for (const auto& b : cboxes) {
         b->check_selection(texture_paths);
     }
 
@@ -503,7 +510,7 @@ void PictureMode::render([[maybe_unused]] GameContext& gc) {
                      static_cast<float>(30.0 + (100.0 * (i - 4))) });
     }
 
-    for (const auto &b : cboxes) {
+    for (const auto& b : cboxes) {
         b->render(texture_options);
     }
 
