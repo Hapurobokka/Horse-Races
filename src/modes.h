@@ -34,9 +34,12 @@ class GameContext {
     std::string paths_string;
     std::vector<std::string> file_paths;
 
+    Music menu_song;
+
     GameContext();
 
     ~GameContext() {
+        UnloadMusicStream(menu_song);
         UnloadTexture(goal.texture);
     }
 };
@@ -48,7 +51,7 @@ class GameMode {
 
     // Método responsable de manejar la lógica del juego.
     // Desde aquí viene cualquier cambio a otro modo.
-    virtual std::unique_ptr<GameMode> update(GameContext& gc) = 0;
+    [[nodiscard]] virtual std::unique_ptr<GameMode> update(GameContext& gc) = 0;
     // Método responsable de dibujar todo a la pantalla.
     virtual void render(GameContext& gc) = 0;
 };

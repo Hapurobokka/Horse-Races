@@ -10,6 +10,7 @@ mkShell rec {
     pkg-config
     valgrind
     ninja
+    yt-dlp
   ];
   buildInputs = [
     alsa-lib

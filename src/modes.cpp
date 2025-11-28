@@ -28,14 +28,18 @@ GameContext::GameContext() {
 
     horses = p_horses | std::views::transform([](const auto& t) {
                  return make_unique<Horse>(get<0>(t), get<1>(t));
-             }) |
-             std::ranges::to<std::vector>();
+             }) | std::ranges::to<std::vector>();
+
     goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
                  .texture = LoadTexture("assets/images/carrot.png") };
 
     file_paths = reader::get_map_list("assets/tables");
     paths_string = reader::get_maps_string(file_paths);
+
     std::println("INFO: Paths cargados: {:}", paths_string);
+
+    menu_song = LoadMusicStream("assets/music/menu.mp3");
+    PlayMusicStream(menu_song);
 }
 
 void Timer::start(double lf) {
@@ -144,8 +148,10 @@ void RaceMode::render(GameContext& gc) {
 }
 
 unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
+    UpdateMusicStream(gc.menu_song);
     if (button_race_pressed) {
         std::println("INFO: Entering Race Mode");
+        StopMusicStream(gc.menu_song);
         return std::make_unique<RaceMode>();
     }
 
@@ -357,6 +363,7 @@ void EditMode::delete_border(GameContext& gc, Vector2 mouse) {
 }
 
 unique_ptr<GameMode> EditMode::update(GameContext& gc) {
+    UpdateMusicStream(gc.menu_song);
     Vector2 mouse = GetMousePosition();
 
     if (back_button_pressed) {
@@ -422,15 +429,8 @@ void EditMode::render(GameContext& gc) {
                   WHITE);
 }
 
-void PictureMode::render(GameContext& gc) {
-    ClearBackground(RAYWHITE);
-
-    if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
-        button_back_pressed = true;
-    }
-}
-
 std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
+    UpdateMusicStream(gc.menu_song);
     if (button_back_pressed) {
         return std::make_unique<MenuMode>();
     }
@@ -447,4 +447,12 @@ std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
     }
 
     return nullptr;
+}
+
+void PictureMode::render(GameContext& gc) {
+    ClearBackground(RAYWHITE);
+
+    if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
+        button_back_pressed = true;
+    }
 }
