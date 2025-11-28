@@ -97,7 +97,9 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
     }
 
     if (victory && race_music) {
-        if (IsMusicStreamPlaying(ost)) { StopMusicStream(ost); }
+        if (IsMusicStreamPlaying(ost)) {
+            StopMusicStream(ost);
+        }
         UnloadMusicStream(ost);
         race_music = false;
         ost = LoadMusicStream("assets/music/victory.mp3");
@@ -166,6 +168,10 @@ unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
         gc.prev_selected = gc.path_selected;
     }
 
+    if (button_picture_pressed) {
+        return std::make_unique<PictureMode>();
+    }
+
     return nullptr;
 }
 
@@ -199,6 +205,10 @@ void MenuMode::render(GameContext& gc) {
 
     if (GuiButton(Rectangle{ 275, 360, 200, 30 }, "Save")) {
         button_saved_pressed = true;
+    }
+
+    if (GuiButton(Rectangle{ 275, 395, 200, 20 }, "Picture")) {
+        button_picture_pressed = true;
     }
 
     DrawText("Press start to start", 250, 200, 30, GRAY);
@@ -410,4 +420,31 @@ void EditMode::render(GameContext& gc) {
                   0.0F,
                   gc.goal.texture.width / 25000.0F,
                   WHITE);
+}
+
+void PictureMode::render(GameContext& gc) {
+    ClearBackground(RAYWHITE);
+
+    if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
+        button_back_pressed = true;
+    }
+}
+
+std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
+    if (button_back_pressed) {
+        return std::make_unique<MenuMode>();
+    }
+
+    for (int i = 0; i < 4; i++) {
+        gc.horses[i]->portrait_render(
+            Vector2{ 40, static_cast<float>(30.0 + (100.0 * i)) });
+    }
+
+    for (int i = 4; i < 8; i++) {
+        gc.horses[i]->portrait_render(
+            Vector2{ static_cast<float>(GetScreenWidth() / 2.0),
+                     static_cast<float>(30.0 + (100.0 * (i - 4))) });
+    }
+
+    return nullptr;
 }

@@ -30,6 +30,19 @@ void Horse::render() {
              BLACK);
 }
 
+void Horse::portrait_render(Vector2 pos) {
+    DrawTextureEx(texture,
+                  pos,
+                  0,
+                  texture.width / 3000.0,
+                  WHITE);
+    DrawText(name.c_str(),
+             pos.x + 86,
+             pos.y,
+             10,
+             BLACK);
+}
+
 void Horse::accelerate() {
     position.x += speed.x;
     position.y += speed.y;

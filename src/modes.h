@@ -83,6 +83,7 @@ class MenuMode : public GameMode {
     bool button_race_pressed = false;
     bool button_edit_pressed = false;
     bool button_saved_pressed = false;
+    bool button_picture_pressed = false;
 
   public:
     MenuMode() = default;
@@ -118,6 +119,15 @@ class EditMode : public GameMode {
 
   public:
     EditMode() = default;
+    std::unique_ptr<GameMode> update(GameContext& gc) override;
+    void render(GameContext& gc) override;
+};
+
+class PictureMode : public GameMode {
+  private:
+    bool button_back_pressed = false;
+  public:
+    PictureMode() = default;
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };

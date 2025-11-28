@@ -16,6 +16,7 @@ class Horse {
     ~Horse();
 
     void render();
+    void portrait_render(Vector2 pos);
     void accelerate();
     bool collide_with_border(Rectangle& b);
     bool collide_with_horse(Horse* h);
