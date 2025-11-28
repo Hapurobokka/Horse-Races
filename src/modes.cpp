@@ -28,14 +28,17 @@ GameContext::GameContext() {
 
     horses = p_horses | std::views::transform([](const auto& t) {
                  return make_unique<Horse>(get<0>(t), get<1>(t));
-             }) | std::ranges::to<std::vector>();
+             }) |
+             std::ranges::to<std::vector>();
 
     goal = Goal{ .position = Vector2{ GetScreenWidth() - 60.0F, 60 },
                  .texture = LoadTexture("assets/images/carrot.png") };
 
-    file_paths = reader::get_map_list("assets/tables");
-    paths_string = reader::get_maps_string(file_paths);
-
+    file_paths =
+        reader::get_path_list("assets/tables", [](const std::string& path) {
+            return path.ends_with(".json");
+        });
+    paths_string = reader::get_paths_string(file_paths);
     std::println("INFO: Paths cargados: {:}", paths_string);
 
     menu_song = LoadMusicStream("assets/music/menu.mp3");
@@ -57,7 +60,8 @@ double Timer::get_elapsed() const {
 
 RaceMode::RaceMode() {
     boop = LoadSound("assets/music/collide.wav");
-    SetSoundVolume(boop, 0.3);
+    SetSoundVolume(boop, 0.1);
+    SetSoundPitch(boop, 0.3);
     ost = LoadMusicStream("assets/music/versus.mp3");
     music_t.start(3);
 }
@@ -160,6 +164,11 @@ unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
         return std::make_unique<EditMode>();
     }
 
+    if (button_picture_pressed) {
+        std::println("INFO: Entering PictureMode Mode");
+        return std::make_unique<PictureMode>(gc);
+    }
+
     if (button_saved_pressed) {
         reader::dump_map(gc, gc.file_paths[gc.path_selected]);
         std::println("Mapa {:} guardado", gc.file_paths[gc.path_selected]);
@@ -172,10 +181,6 @@ unique_ptr<GameMode> MenuMode::update(GameContext& gc) {
         std::println("Mapa {:} cargado", gc.file_paths[gc.path_selected]);
 
         gc.prev_selected = gc.path_selected;
-    }
-
-    if (button_picture_pressed) {
-        return std::make_unique<PictureMode>();
     }
 
     return nullptr;
@@ -429,11 +434,45 @@ void EditMode::render(GameContext& gc) {
                   WHITE);
 }
 
+PictureMode::PictureMode(GameContext& gc) {
+    std::println("Empezando constructor de PictureMode");
+    for (int i = 0; i < (int)gc.horses.size() - 4; i++) {
+        cboxes.emplace_back(std::make_unique<SmartComboBox>(
+            Rectangle{ 40 + 86, static_cast<float>(50 + (100.0 * i)), 200, 25 },
+            i,
+            gc.horses[i].get()));
+    }
+
+    for (int i = 4; i < (int)gc.horses.size(); i++) {
+        cboxes.emplace_back(std::make_unique<SmartComboBox>(
+            Rectangle{ static_cast<float>(86 + (GetScreenWidth() / 2.0)),
+                       static_cast<float>(50 + (100.0 * (i - 4))),
+                       200, 25 },
+            i,
+            gc.horses[i].get() ));
+    }
+    texture_paths = reader::get_path_list("assets/images", [](const string& path) {
+        return path.ends_with(".png");
+    });
+    texture_options = reader::get_paths_string(texture_paths);
+    std::println("Constructor de PictureMode finalizado");
+}
+
 std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
     UpdateMusicStream(gc.menu_song);
     if (button_back_pressed) {
         return std::make_unique<MenuMode>();
     }
+
+    for (const auto &b : cboxes) {
+        b->check_selection(texture_paths);
+    }
+
+    return nullptr;
+}
+
+void PictureMode::render([[maybe_unused]] GameContext& gc) {
+    ClearBackground(RAYWHITE);
 
     for (int i = 0; i < 4; i++) {
         gc.horses[i]->portrait_render(
@@ -446,11 +485,9 @@ std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
                      static_cast<float>(30.0 + (100.0 * (i - 4))) });
     }
 
-    return nullptr;
-}
-
-void PictureMode::render([[maybe_unused]] GameContext& gc) {
-    ClearBackground(RAYWHITE);
+    for (const auto &b : cboxes) {
+        b->render(texture_options);
+    }
 
     if (GuiButton(Rectangle{ 20, 20, 20, 20 }, "<")) {
         button_back_pressed = true;

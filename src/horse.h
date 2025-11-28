@@ -20,6 +20,7 @@ class Horse {
     void accelerate();
     bool collide_with_border(Rectangle& b);
     bool collide_with_horse(Horse* h);
+    void swap_texture(const std::string &texture_path);
 
     std::string get_name() { return name; }
     Vector2 get_position() { return position; }

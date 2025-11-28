@@ -1,9 +1,11 @@
 #pragma once
 
 #include "horse.h"
+#include "raygui.h"
 #include "raylib.h"
 
 #include <memory>
+#include <print>
 #include <vector>
 
 // Timer para contar el tiempo.
@@ -126,11 +128,41 @@ class EditMode : public GameMode {
     void render(GameContext& gc) override;
 };
 
+class SmartComboBox {
+  private:
+    Rectangle position;
+    int current_number;
+    int prev_number;
+    Horse* horse;
+
+  public:
+    SmartComboBox(Rectangle pos, int init_num, Horse* h)
+        : position{ pos }
+        , current_number{ init_num }
+        , prev_number{ 0 }
+        , horse{ h } {}
+
+    void check_selection(std::vector<std::string>& texture_paths) {
+        if (current_number != prev_number) {
+            horse->swap_texture(texture_paths[current_number]);
+            prev_number = current_number;
+        }
+    }
+
+    void render(std::string& texture_options) {
+        GuiComboBox(position, texture_options.c_str(), &current_number);
+    }
+};
+
 class PictureMode : public GameMode {
   private:
     bool button_back_pressed = false;
+    std::vector<std::string> texture_paths;
+    std::string texture_options;
+    std::vector<std::unique_ptr<SmartComboBox>> cboxes;
+
   public:
-    PictureMode() = default;
+    PictureMode(GameContext &gc);
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };

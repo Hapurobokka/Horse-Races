@@ -68,17 +68,7 @@ void reader::read_map(GameContext& gc, const string& path) {
     gc.goal.position = Vector2{ x, y };
 }
 
-vector<string> reader::get_map_list(const std::string& map_route) {
-    return fs::directory_iterator(map_route) |
-           transform([](const fs::directory_entry& entry) {
-               return entry.path().string();
-           }) |
-           std::views::filter(
-               [](const string& path) { return path.ends_with(".json"); }) |
-           std::ranges::to<vector>();
-}
-
-string reader::get_maps_string(const vector<string>& map_route) {
+string reader::get_paths_string(const vector<string>& map_route) {
     return std::ranges::fold_left(
         map_route, string{}, [](const string& acc, const string& path) {
             return acc.empty() ? path : acc + ";" + path;

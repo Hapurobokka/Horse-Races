@@ -107,6 +107,11 @@ bool Horse::collide_with_horse(Horse* h) {
     return false;
 }
 
+void Horse::swap_texture(const string &texture_path) {
+    UnloadTexture(texture);
+    LoadTexture(texture_path.c_str());
+}
+
 Horse::~Horse() {
     std::println("{:} ha sido liberado", name);
     UnloadTexture(texture);

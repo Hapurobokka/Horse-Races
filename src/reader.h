@@ -2,10 +2,21 @@
 
 #include "modes.h"
 #include <vector>
+#include <filesystem>
+#include <ranges>
 
 namespace reader {
     void dump_map(GameContext& gc, const std::string& path);
     void read_map(GameContext& gc, const std::string& path);
-    std::vector<std::string> get_map_list(const std::string& map_route);
-    std::string get_maps_string(const std::vector<std::string>& map_route);
+    template<typename FilterFunc>
+    std::vector<std::string> get_path_list(const std::string& map_route, FilterFunc filter) {
+        return std::filesystem::directory_iterator(map_route) |
+               std::views::transform([](const std::filesystem::directory_entry& entry) {
+                   return entry.path().string();
+               }) |
+               std::views::filter(filter) |
+               std::ranges::to<std::vector>();
+    }
+
+    std::string get_paths_string(const std::vector<std::string>& map_route);
 }
