@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <print>
+#include <queue>
 #include <vector>
 
 // Timer para contar el tiempo.
@@ -37,6 +38,8 @@ class GameContext {
     std::vector<std::string> file_paths;
 
     Music menu_song;
+
+    std::queue<Sound> soundQueue;
 
     GameContext();
 
@@ -162,7 +165,7 @@ class PictureMode : public GameMode {
     std::vector<std::unique_ptr<SmartComboBox>> cboxes;
 
   public:
-    PictureMode(GameContext &gc);
+    PictureMode(GameContext& gc);
     std::unique_ptr<GameMode> update(GameContext& gc) override;
     void render(GameContext& gc) override;
 };

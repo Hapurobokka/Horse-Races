@@ -87,12 +87,12 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
             h->accelerate();
             for (auto b : gc.map) {
                 if (h->collide_with_border(b)) {
-                    PlaySound(boop);
+                    gc.soundQueue.push(boop);
                 }
             }
             for (const auto& h2 : gc.horses) {
                 if (h->collide_with_horse(h2.get())) {
-                    PlaySound(boop);
+                    gc.soundQueue.push(boop);
                 }
             }
 
@@ -114,6 +114,12 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
         if (!IsMusicStreamPlaying(ost)) {
             PlayMusicStream(ost);
         }
+    }
+
+    while (!gc.soundQueue.empty()) {
+        Sound s = gc.soundQueue.front();
+        gc.soundQueue.pop();
+        PlaySound(s);
     }
 
     return nullptr;
@@ -447,13 +453,15 @@ PictureMode::PictureMode(GameContext& gc) {
         cboxes.emplace_back(std::make_unique<SmartComboBox>(
             Rectangle{ static_cast<float>(86 + (GetScreenWidth() / 2.0)),
                        static_cast<float>(50 + (100.0 * (i - 4))),
-                       200, 25 },
+                       200,
+                       25 },
             i,
-            gc.horses[i].get() ));
+            gc.horses[i].get()));
     }
-    texture_paths = reader::get_path_list("assets/images", [](const string& path) {
-        return path.ends_with(".png");
-    });
+    texture_paths =
+        reader::get_path_list("assets/images", [](const string& path) {
+            return path.ends_with(".png");
+        });
     texture_options = reader::get_paths_string(texture_paths);
     std::println("Constructor de PictureMode finalizado");
 }
@@ -464,7 +472,7 @@ std::unique_ptr<GameMode> PictureMode::update(GameContext& gc) {
         return std::make_unique<MenuMode>();
     }
 
-    for (const auto &b : cboxes) {
+    for (const auto& b : cboxes) {
         b->check_selection(texture_paths);
     }
 
@@ -485,7 +493,7 @@ void PictureMode::render([[maybe_unused]] GameContext& gc) {
                      static_cast<float>(30.0 + (100.0 * (i - 4))) });
     }
 
-    for (const auto &b : cboxes) {
+    for (const auto& b : cboxes) {
         b->render(texture_options);
     }
 
