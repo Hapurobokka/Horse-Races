@@ -28,17 +28,19 @@ void Horse::render() {
              BLACK);
 }
 
-void Horse::portrait_render(Vector2 pos) {
+void Horse::portrait_render(Vector2 pos, float scale, bool name) {
     DrawTextureEx(texture,
                   pos,
                   0,
-                  texture.width / 3000.0,
+                  texture.width / scale,
                   WHITE);
-    DrawText(name.c_str(),
-             pos.x + 86,
-             pos.y,
-             10,
-             BLACK);
+    if (name) {
+        DrawText(this->name.c_str(),
+                 pos.x + 86,
+                 pos.y,
+                 10,
+                 BLACK);
+    }
 }
 
 void Horse::accelerate() {

@@ -47,6 +47,7 @@ GameContext::GameContext() {
     std::println("INFO: Paths cargados: {:}", paths_string);
 
     menu_song = LoadMusicStream("assets/music/menu.mp3");
+    SetMusicVolume(menu_song, 0.5);
     PlayMusicStream(menu_song);
 }
 
@@ -68,6 +69,7 @@ RaceMode::RaceMode() {
     SetSoundVolume(boop, 0.1);
     SetSoundPitch(boop, 0.3);
     ost = LoadMusicStream("assets/music/versus.mp3");
+    SetMusicVolume(ost, 0.5);
     music_t.start(3);
 }
 
@@ -104,7 +106,7 @@ unique_ptr<GameMode> RaceMode::update(GameContext& gc) {
             if (CheckCollisionCircles(
                     h->get_position(), h->get_radius(), gc.goal.position, 10)) {
                 victory = true;
-                winner = h->get_name();
+                winner = h.get();
             }
         }
     }
@@ -160,26 +162,31 @@ void RaceMode::render(GameContext& gc) {
     if (paused) {
         DrawText("Paused", 350, 200, 30, GRAY);
 
-        if (GuiButton(Rectangle{30, 10, 20, 20}, "<-")) {
+        if (GuiButton(Rectangle{ 30, 10, 20, 20 }, "<")) {
             button_back_pressed = true;
         }
     }
     if (victory) {
-        DrawText(
-            TextFormat("WINNER: %s", winner.c_str()), 350, 200, 30, YELLOW);
+        winner->portrait_render(Vector2{30, 55}, 800.0, false);
 
-        if (GuiButton(Rectangle{30, 10, 20, 20}, "<-")) {
+        DrawText(
+            TextFormat("WINNER: %s", winner->get_name().c_str()), 370, 200, 30, YELLOW);
+
+        if (GuiButton(Rectangle{ 30, 10, 20, 20 }, "<")) {
             button_back_pressed = true;
         }
+
     }
-    DrawFPS(10, 10);
 }
 
-MenuMode::MenuMode(GameContext &gc) {
+MenuMode::MenuMode(GameContext& gc) {
     if (gc.restart) {
         gc.map.clear();
         reader::read_map(gc, gc.file_paths[gc.path_selected]);
         gc.restart = false;
+    }
+    if (!IsMusicStreamPlaying(gc.menu_song)) {
+        PlayMusicStream(gc.menu_song);
     }
 }
 
@@ -234,28 +241,50 @@ void MenuMode::render(GameContext& gc) {
         h->render();
     }
 
-    if (GuiButton(Rectangle{ 275, 250, 200, 30 }, "Start")) {
+    int string_width = (MeasureText("Press start to start", 30));
+    DrawText("Press start to start",
+             (GetScreenWidth() / 2) - (string_width / 2),
+             200,
+             30,
+             GRAY);
+
+    if (GuiButton(Rectangle{ static_cast<float>((GetScreenWidth() / 2.0) - 100),
+                             250,
+                             200,
+                             30 },
+                  "Start")) {
         button_race_pressed = true;
     }
 
-    if (GuiButton(Rectangle{ 275, 280, 200, 30 }, "Edit")) {
+    if (GuiButton(Rectangle{ static_cast<float>((GetScreenWidth() / 2.0) - 100),
+                             280,
+                             200,
+                             30 },
+                  "Edit")) {
         button_edit_pressed = true;
     }
 
-    GuiComboBox(Rectangle{ 275, 320, 200, 30 },
-                gc.paths_string.c_str(),
-                &gc.path_selected);
+    GuiComboBox(
+        Rectangle{
+            static_cast<float>((GetScreenWidth() / 2.0) - 100), 320, 200, 30 },
+        gc.paths_string.c_str(),
+        &gc.path_selected);
 
-    if (GuiButton(Rectangle{ 275, 360, 200, 30 }, "Save")) {
+    if (GuiButton(Rectangle{ static_cast<float>((GetScreenWidth() / 2.0) - 100),
+                             360,
+                             200,
+                             30 },
+                  "Save")) {
         button_saved_pressed = true;
     }
 
-    if (GuiButton(Rectangle{ 275, 395, 200, 20 }, "Picture")) {
+    if (GuiButton(Rectangle{ static_cast<float>((GetScreenWidth() / 2.0) - 100),
+                             395,
+                             200,
+                             20 },
+                  "Picture")) {
         button_picture_pressed = true;
     }
-
-    DrawText("Press start to start", 250, 200, 30, GRAY);
-    DrawFPS(10, 10);
 }
 
 void EditMode::move_horse(Vector2 mouse) {
@@ -415,6 +444,10 @@ unique_ptr<GameMode> EditMode::update(GameContext& gc) {
                                        100 });
     }
 
+    if (IsKeyPressed(KEY_G)) {
+        show_guides = !show_guides;
+    }
+
     if (CheckCollisionPointCircle(mouse, gc.goal.position, 10) &&
         IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !mouse_in_uma &&
         mouse_in_border == GrabbedBorder::NONE) {
@@ -444,12 +477,14 @@ void EditMode::render(GameContext& gc) {
     ClearBackground(RAYWHITE);
     for (auto b : gc.map) {
         DrawRectangleRec(b, PURPLE);
-        DrawCircle(b.x, b.y, 5.0F, BLUE);
-        DrawCircle(b.x + b.width, b.y, 5.0F, BLUE);
-        DrawCircle(b.x, b.y + b.height, 5.0F, BLUE);
-        DrawCircle(b.x + b.width, b.y + b.height, 5.0F, BLUE);
-        DrawCircle(b.x + (b.width / 2), b.y + (b.height / 2), 5.0f, BLUE);
-    };
+        if (show_guides) {
+            DrawCircle(b.x, b.y, 5.0F, BLUE);
+            DrawCircle(b.x + b.width, b.y, 5.0F, BLUE);
+            DrawCircle(b.x, b.y + b.height, 5.0F, BLUE);
+            DrawCircle(b.x + b.width, b.y + b.height, 5.0F, BLUE);
+            DrawCircle(b.x + (b.width / 2), b.y + (b.height / 2), 5.0f, BLUE);
+        };
+    }
 
     for (const auto& h : gc.horses) {
         h->render();
@@ -528,13 +563,13 @@ void PictureMode::render([[maybe_unused]] GameContext& gc) {
 
     for (int i = 0; i < 4; i++) {
         gc.horses[i]->portrait_render(
-            Vector2{ 40, static_cast<float>(30.0 + (100.0 * i)) });
+            Vector2{ 40, static_cast<float>(30.0 + (100.0 * i)) }, 3000.0, true);
     }
 
     for (int i = 4; i < 8; i++) {
         gc.horses[i]->portrait_render(
             Vector2{ static_cast<float>(GetScreenWidth() / 2.0),
-                     static_cast<float>(30.0 + (100.0 * (i - 4))) });
+                     static_cast<float>(30.0 + (100.0 * (i - 4))) }, 3000.0, true);
     }
 
     for (const auto& b : cboxes) {

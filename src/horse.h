@@ -17,7 +17,7 @@ class Horse {
     ~Horse();
 
     void render();
-    void portrait_render(Vector2 pos);
+    void portrait_render(Vector2 pos, float scale, bool name);
     void accelerate();
     void swap_texture(const std::string &texture_path);
     bool collide_with_border(Rectangle& b);

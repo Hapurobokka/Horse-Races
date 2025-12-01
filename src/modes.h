@@ -74,7 +74,7 @@ class RaceMode : public GameMode {
     bool race_started = false;
     bool victory = false;
 
-    std::string winner;
+    Horse* winner;
     Music ost;
     Sound boop;
 
@@ -108,6 +108,7 @@ class EditMode : public GameMode {
     bool back_button_pressed = false;
     bool mouse_in_uma = false;
     bool mouse_in_goal = false;
+    bool show_guides = true;
 
     enum class GrabbedBorder {
         NONE,
